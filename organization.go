@@ -18,6 +18,7 @@ package trello
 
 import (
 	"encoding/json"
+	"net/url"
 )
 
 type Organization struct {
@@ -69,4 +70,24 @@ func (o *Organization) Boards() (boards []Board, err error) {
 		boards[i].client = o.client
 	}
 	return
+}
+
+// AddBoard creates a new Board
+func (o *Organization) AddBoard(name string) (*Board, error) {
+
+	payload := url.Values{}
+	payload.Set("name", name)
+	payload.Set("idOrganization", o.Id)
+
+	body, err := o.client.Post("/boards", payload)
+	if err != nil {
+		return nil, err
+	}
+	var board Board
+	if err = json.Unmarshal(body, &board); err != nil {
+		return nil, err
+	}
+
+	board.client = o.client
+	return &board, nil
 }
