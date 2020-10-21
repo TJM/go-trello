@@ -22,9 +22,10 @@ import (
 	"strings"
 )
 
+// Member tello member struct
 type Member struct {
 	client     *Client
-	Id         string `json:"id"`
+	ID         string `json:"id"`
 	AvatarHash string `json:"avatarHash"`
 	Bio        string `json:"bio"`
 	BioData    struct {
@@ -32,19 +33,19 @@ type Member struct {
 	} `json:"bioData"`
 	Confirmed                bool     `json:"confirmed"`
 	FullName                 string   `json:"fullName"`
-	IdPremOrgsAdmin          []string `json:"idPremOrgsAdmin"`
+	IDPremOrgsAdmin          []string `json:"idPremOrgsAdmin"`
 	Initials                 string   `json:"initials"`
 	MemberType               string   `json:"memberType"`
 	Products                 []int    `json:"products"`
 	Status                   string   `json:"status"`
-	Url                      string   `json:"url"`
+	URL                      string   `json:"url"`
 	Username                 string   `json:"username"`
 	AvatarSource             string   `json:"avatarSource"`
 	Email                    string   `json:"email"`
 	GravatarHash             string   `json:"gravatarHash"`
-	IdBoards                 []string `json:"idBoards"`
-	IdBoardsPinned           []string `json:"idBoardsPinned"`
-	IdOrganizations          []string `json:"idOrganizations"`
+	IDBoards                 []string `json:"idBoards"`
+	IDBoardsPinned           []string `json:"idBoardsPinned"`
+	IDOrganizations          []string `json:"idOrganizations"`
 	LoginTypes               []string `json:"loginTypes"`
 	NewEmail                 string   `json:"newEmail"`
 	OneTimeMessagesDismissed []string `json:"oneTimeMessagesDismissed"`
@@ -60,6 +61,8 @@ type Member struct {
 	PremiumFeatures    []string `json:"premiumFeatures"`
 }
 
+// Member returns a member (NOTE: "me" defaults to yourself)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-members/#api-members-id-get
 func (c *Client) Member(nick string) (member *Member, err error) {
 	body, err := c.Get("/members/" + nick)
 	if err != nil {
@@ -71,6 +74,8 @@ func (c *Client) Member(nick string) (member *Member, err error) {
 	return
 }
 
+// Boards returns members boards
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-members/#api-members-id-boards-get
 func (m *Member) Boards(field ...string) (boards []Board, err error) {
 	fields := ""
 	if len(field) == 0 {
@@ -79,7 +84,7 @@ func (m *Member) Boards(field ...string) (boards []Board, err error) {
 		fields = strings.Join(field, ",")
 	}
 
-	body, err := m.client.Get("/members/" + m.Id + "/boards?fields=" + fields)
+	body, err := m.client.Get("/members/" + m.ID + "/boards?fields=" + fields)
 	if err != nil {
 		return
 	}
@@ -92,6 +97,7 @@ func (m *Member) Boards(field ...string) (boards []Board, err error) {
 }
 
 // AddBoard creates a new Board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-post
 func (m *Member) AddBoard(name string) (*Board, error) {
 
 	payload := url.Values{}
@@ -110,8 +116,9 @@ func (m *Member) AddBoard(name string) (*Board, error) {
 	return &board, nil
 }
 
+// Notifications - https://developer.atlassian.com/cloud/trello/rest/api-group-members/#api-members-id-notifications-get
 func (m *Member) Notifications() (notifications []Notification, err error) {
-	body, err := m.client.Get("/members/" + m.Id + "/notifications")
+	body, err := m.client.Get("/members/" + m.ID + "/notifications")
 	if err != nil {
 		return
 	}
@@ -123,7 +130,8 @@ func (m *Member) Notifications() (notifications []Notification, err error) {
 	return
 }
 
+// AvatarURL returns avatar URL for member
 // TODO: Avatar sizes [170, 30]
-func (m *Member) AvatarUrl() string {
+func (m *Member) AvatarURL() string {
 	return "https://trello-avatars.s3.amazonaws.com/" + m.AvatarHash + "/170.png"
 }

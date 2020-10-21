@@ -18,11 +18,13 @@ package trello
 
 import "net/url"
 
+// Argument struct
 type Argument struct {
 	Name  string
 	Value string
 }
 
+// NewArgument creates a new argument type from name and value strings
 func NewArgument(name, value string) *Argument {
 	return &Argument{
 		Name:  name,
@@ -30,6 +32,7 @@ func NewArgument(name, value string) *Argument {
 	}
 }
 
+// EncodeArgs URL encodes a list of arguments
 func EncodeArgs(args []*Argument) string {
 	v := url.Values{}
 	for _, arg := range args {

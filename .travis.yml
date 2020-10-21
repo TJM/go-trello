@@ -2,14 +2,15 @@ sudo: false
 language: go
 
 go:
+  - "1.5"
   - 1.4.3
-  - 1.2
+  - "1.2"
   - tip
 
 install:
   - go get 'github.com/franela/goblin'
   - go get 'github.com/onsi/gomega'
-  - go get 'github.com/VojtechVitek/go-trello'
+  - go get 'github.com/TJM/go-trello'
 
 script:
   - go test ./tests/...

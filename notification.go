@@ -18,39 +18,40 @@ package trello
 
 import "encoding/json"
 
+// Notification - Trello Notification Type
 type Notification struct {
 	client *Client
-	Id     string `json:"id"`
+	ID     string `json:"id"`
 	Unread bool   `json:"unread"`
 	Type   string `json:"type"`
 	Date   string `json:"date"`
 	Data   struct {
 		ListBefore struct {
-			Id   string `json:"id"`
+			ID   string `json:"id"`
 			Name string `json:"name"`
 		} `json:"listBefore"`
 		ListAfter struct {
-			Id   string `json:"id"`
+			ID   string `json:"id"`
 			Name string `json:"name"`
 		} `json:"listAfter"`
 		Board struct {
-			Id        string `json:"id"`
+			ID        string `json:"id"`
 			Name      string `json:"name"`
 			ShortLink string `json:"shortLink"`
 		} `json:"board"`
 		Card struct {
-			Id        string `json:"id"`
+			ID        string `json:"id"`
 			Name      string `json:"name"`
 			ShortLink string `json:"shortLink"`
-			IdShort   int    `json:"idShort"`
+			IDShort   int    `json:"idShort"`
 		} `json:"card"`
 		Old struct {
-			IdList string `json:"idList"`
+			IDList string `json:"idList"`
 		} `json:"old"`
 	} `json:"data"`
-	IdMemberCreator string `json:"idMemberCreator"`
+	IDMemberCreator string `json:"idMemberCreator"`
 	MemberCreator   struct {
-		Id         string `json:"id"`
+		ID         string `json:"id"`
 		AvatarHash string `json:"avatarHash"`
 		FullName   string `json:"fullName"`
 		Initials   string `json:"initials"`
@@ -58,8 +59,10 @@ type Notification struct {
 	} `json:"memberCreator"`
 }
 
-func (c *Client) Notification(notificationId string) (notification *Notification, err error) {
-	body, err := c.Get("/notifications/" + notificationId)
+// Notification - Get Notification by notificationId (string)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-notifications/#api-notifications-id-get
+func (c *Client) Notification(notificationID string) (notification *Notification, err error) {
+	body, err := c.Get("/notifications/" + notificationID)
 	if err != nil {
 		return
 	}

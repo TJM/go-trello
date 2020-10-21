@@ -16,6 +16,7 @@ limitations under the License.
 
 package trello
 
+// Version - Trello API Version
 func (c *Client) Version() string {
 	return c.version
 }

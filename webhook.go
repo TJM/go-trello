@@ -6,6 +6,7 @@ import (
 	"net/url"
 )
 
+// Webhook - Trello Webhook Type
 type Webhook struct {
 	ID          string `json:"id"`
 	Description string `json:"description"`
@@ -14,6 +15,8 @@ type Webhook struct {
 	Active      bool   `json:"active"`
 }
 
+// Webhooks - Get Webhooks for a token (string)
+// https://developer.atlassian.com/cloud/trello/rest/api-group-tokens/#api-tokens-token-webhooks-get
 func (c *Client) Webhooks(token string) (webhooks []Webhook, err error) {
 
 	body, err := c.Get(webhookURL(token))
@@ -24,6 +27,8 @@ func (c *Client) Webhooks(token string) (webhooks []Webhook, err error) {
 	return
 }
 
+// CreateWebhook - Create a Webhook
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-webhooks/#api-webhooks-post
 func (c *Client) CreateWebhook(hook Webhook) (webhook Webhook, err error) {
 
 	payload := url.Values{}
@@ -38,6 +43,8 @@ func (c *Client) CreateWebhook(hook Webhook) (webhook Webhook, err error) {
 	return
 }
 
+// Webhook - Get Webhook by id (string)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-webhooks/#api-webhooks-id-get
 func (c *Client) Webhook(webhookID string) (webhook Webhook, err error) {
 
 	url := fmt.Sprintf("/webhooks/%s/", webhookID)
@@ -49,6 +56,8 @@ func (c *Client) Webhook(webhookID string) (webhook Webhook, err error) {
 	return
 }
 
+// DeleteWebhook - Delete a Webhook by id (string)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-webhooks/#api-webhooks-id-delete
 func (c *Client) DeleteWebhook(webhookID string) (err error) {
 
 	url := fmt.Sprintf("/webhooks/%s/", webhookID)

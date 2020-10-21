@@ -22,19 +22,20 @@ import (
 	"strconv"
 )
 
+// Board Type for Trello Board
 type Board struct {
 	client   *Client
-	Id       string `json:"id"`
+	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Desc     string `json:"desc"`
 	DescData struct {
 		Emoji struct{} `json:"emoji"`
 	} `json:"descData"`
 	Closed         bool   `json:"closed"`
-	IdOrganization string `json:"idOrganization"`
+	IDOrganization string `json:"idOrganization"`
 	Pinned         bool   `json:"pinned"`
-	Url            string `json:"url"`
-	ShortUrl       string `json:"shortUrl"`
+	URL            string `json:"url"`
+	ShortURL       string `json:"shortUrl"`
 	Prefs          struct {
 		PermissionLevel       string            `json:"permissionLevel"`
 		Voting                string            `json:"voting"`
@@ -65,12 +66,15 @@ type Board struct {
 	} `json:"labelNames"`
 }
 
+// BoardBackground Type
 type BoardBackground struct {
-	width  int    `json:"width"`
-	height int    `json:"height"`
-	url    string `json:"url"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+	URL    string `json:"url"`
 }
 
+// Boards - retrieves list of all boards
+// - URL Link?
 func (c *Client) Boards() (boards []Board, err error) {
 	body, err := c.Get("/boards/")
 	if err != nil {
@@ -84,8 +88,10 @@ func (c *Client) Boards() (boards []Board, err error) {
 	return
 }
 
-func (c *Client) Board(boardId string) (board *Board, err error) {
-	body, err := c.Get("/boards/" + boardId)
+// Board - retrieves board by boardID
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-get
+func (c *Client) Board(boardID string) (board *Board, err error) {
+	body, err := c.Get("/boards/" + boardID)
 	if err != nil {
 		return
 	}
@@ -95,8 +101,10 @@ func (c *Client) Board(boardId string) (board *Board, err error) {
 	return
 }
 
+// Lists - Get lists on a board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-lists-get
 func (b *Board) Lists() (lists []List, err error) {
-	body, err := b.client.Get("/boards/" + b.Id + "/lists")
+	body, err := b.client.Get("/boards/" + b.ID + "/lists")
 	if err != nil {
 		return
 	}
@@ -108,8 +116,10 @@ func (b *Board) Lists() (lists []List, err error) {
 	return
 }
 
+// Members - Get the members of a board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-members-get
 func (b *Board) Members() (members []Member, err error) {
-	body, err := b.client.Get("/boards/" + b.Id + "/members")
+	body, err := b.client.Get("/boards/" + b.ID + "/members")
 	if err != nil {
 		return
 	}
@@ -121,8 +131,10 @@ func (b *Board) Members() (members []Member, err error) {
 	return
 }
 
+// Cards - Get cards on a board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-cards-get
 func (b *Board) Cards() (cards []Card, err error) {
-	body, err := b.client.Get("/boards/" + b.Id + "/cards")
+	body, err := b.client.Get("/boards/" + b.ID + "/cards")
 	if err != nil {
 		return
 	}
@@ -134,8 +146,10 @@ func (b *Board) Cards() (cards []Card, err error) {
 	return
 }
 
-func (b *Board) Card(IdCard string) (card *Card, err error) {
-	body, err := b.client.Get("/boards/" + b.Id + "/cards/" + IdCard)
+// Card - Get a card on a board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-cards-idcard-get
+func (b *Board) Card(IDCard string) (card *Card, err error) {
+	body, err := b.client.Get("/boards/" + b.ID + "/cards/" + IDCard)
 	if err != nil {
 		return
 	}
@@ -145,8 +159,10 @@ func (b *Board) Card(IdCard string) (card *Card, err error) {
 	return
 }
 
+// Checklists - Get checklists on a board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-checklists-get
 func (b *Board) Checklists() (checklists []Checklist, err error) {
-	body, err := b.client.Get("/boards/" + b.Id + "/checklists")
+	body, err := b.client.Get("/boards/" + b.ID + "/checklists")
 	if err != nil {
 		return
 	}
@@ -158,8 +174,10 @@ func (b *Board) Checklists() (checklists []Checklist, err error) {
 	return
 }
 
-func (b *Board) MemberCards(IdMember string) (cards []Card, err error) {
-	body, err := b.client.Get("/boards/" + b.Id + "/members/" + IdMember + "/cards")
+// MemberCards - Get cards for a member ID (string) on a board?
+// - URL Link?
+func (b *Board) MemberCards(IDMember string) (cards []Card, err error) {
+	body, err := b.client.Get("/boards/" + b.ID + "/members/" + IDMember + "/cards")
 	if err != nil {
 		return
 	}
@@ -171,8 +189,10 @@ func (b *Board) MemberCards(IdMember string) (cards []Card, err error) {
 	return
 }
 
+// Actions - Get Actions for a Board
+// - URL LINK?
 func (b *Board) Actions(arg ...*Argument) (actions []Action, err error) {
-	ep := "/boards/" + b.Id + "/actions"
+	ep := "/boards/" + b.ID + "/actions"
 	if query := EncodeArgs(arg); query != "" {
 		ep += "?" + query
 	}
@@ -189,12 +209,13 @@ func (b *Board) Actions(arg ...*Argument) (actions []Action, err error) {
 	return
 }
 
+// AddList - Add a List to a Board
 func (b *Board) AddList(opts List) (*List, error) {
-	opts.IdBoard = b.Id
+	opts.IDBoard = b.ID
 
 	payload := url.Values{}
 	payload.Set("name", opts.Name)
-	payload.Set("idBoard", opts.IdBoard)
+	payload.Set("idBoard", opts.IDBoard)
 	payload.Set("pos", strconv.FormatFloat(float64(opts.Pos), 'g', -1, 32))
 
 	body, err := b.client.Post("/lists", payload)
@@ -211,8 +232,10 @@ func (b *Board) AddList(opts List) (*List, error) {
 	return &list, nil
 }
 
+// Labels - Get Labels on a Board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-labels-get
 func (b *Board) Labels() ([]Label, error) {
-	body, err := b.client.Get("/boards/" + b.Id + "/labels")
+	body, err := b.client.Get("/boards/" + b.ID + "/labels")
 	if err != nil {
 		return nil, err
 	}
@@ -224,13 +247,15 @@ func (b *Board) Labels() ([]Label, error) {
 	return labels, nil
 }
 
-//Color can be an empty string
+// AddLabel - Create a Label on a board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-labels-post
+// NOTE: Color can be an empty string
 func (b *Board) AddLabel(name, color string) (*Label, error) {
 	payload := url.Values{}
 	payload.Set("name", name)
 	payload.Set("color", color)
 
-	body, err := b.client.Post("/boards/" + b.Id + "/labels", payload)
+	body, err := b.client.Post("/boards/"+b.ID+"/labels", payload)
 	if err != nil {
 		return nil, err
 	}

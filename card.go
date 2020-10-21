@@ -22,33 +22,34 @@ import (
 	"strconv"
 )
 
+// Card - Trello Card Type
 type Card struct {
 	client                *Client
-	Id                    string   `json:"id"`
+	ID                    string   `json:"id"`
 	Name                  string   `json:"name"`
 	Email                 string   `json:"email"`
-	IdShort               int      `json:"idShort"`
-	IdAttachmentCover     string   `json:"idAttachmentCover"`
-	IdCheckLists          []string `json:"idCheckLists"`
-	IdBoard               string   `json:"idBoard"`
-	IdList                string   `json:"idList"`
-	IdMembers             []string `json:"idMembers"`
-	IdMembersVoted        []string `json:"idMembersVoted"`
+	IDShort               int      `json:"idShort"`
+	IDAttachmentCover     string   `json:"idAttachmentCover"`
+	IDCheckLists          []string `json:"idCheckLists"`
+	IDBoard               string   `json:"idBoard"`
+	IDList                string   `json:"idList"`
+	IDMembers             []string `json:"idMembers"`
+	IDMembersVoted        []string `json:"idMembersVoted"`
 	ManualCoverAttachment bool     `json:"manualCoverAttachment"`
 	Closed                bool     `json:"closed"`
 	Pos                   float64  `json:"pos"`
 	ShortLink             string   `json:"shortLink"`
 	DateLastActivity      string   `json:"dateLastActivity"`
-	ShortUrl              string   `json:"shortUrl"`
+	ShortURL              string   `json:"shortUrl"`
 	Subscribed            bool     `json:"subscribed"`
-	Url                   string   `json:"url"`
+	URL                   string   `json:"url"`
 	Due                   string   `json:"due"`
 	Desc                  string   `json:"desc"`
 	DescData              struct {
 		Emoji struct{} `json:"emoji"`
 	} `json:"descData"`
 	CheckItemStates []struct {
-		IdCheckItem string `json:"idCheckItem"`
+		IDCheckItem string `json:"idCheckItem"`
 		State       string `json:"state"`
 	} `json:"checkItemStates"`
 	Badges struct {
@@ -66,8 +67,10 @@ type Card struct {
 	Labels []Label `json:"labels"`
 }
 
-func (c *Client) Card(CardId string) (card *Card, err error) {
-	body, err := c.Get("/card/" + CardId)
+// Card - Retrieve card by card ID
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-get
+func (c *Client) Card(CardID string) (card *Card, err error) {
+	body, err := c.Get("/card/" + CardID)
 	if err != nil {
 		return
 	}
@@ -77,8 +80,10 @@ func (c *Client) Card(CardId string) (card *Card, err error) {
 	return
 }
 
+// Checklists - Get Checklists on a Card
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-checklists-get
 func (c *Card) Checklists() (checklists []Checklist, err error) {
-	body, err := c.client.Get("/card/" + c.Id + "/checklists")
+	body, err := c.client.Get("/card/" + c.ID + "/checklists")
 	if err != nil {
 		return
 	}
@@ -90,14 +95,16 @@ func (c *Card) Checklists() (checklists []Checklist, err error) {
 		for i := range list.CheckItems {
 			item := &list.CheckItems[i]
 			item.client = c.client
-			item.listID = list.Id
+			item.listID = list.ID
 		}
 	}
 	return
 }
 
+// Members - Get the Members of a card
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-members-get
 func (c *Card) Members() (members []Member, err error) {
-	body, err := c.client.Get("/cards/" + c.Id + "/members")
+	body, err := c.client.Get("/cards/" + c.ID + "/members")
 	if err != nil {
 		return
 	}
@@ -109,14 +116,15 @@ func (c *Card) Members() (members []Member, err error) {
 	return
 }
 
-// Add a member to a card
+// AddMember - Add a member to a card
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-idmembers-post
 // The AddMember function requires a member (pointer) to add
 // It returns the resulting member-list
 // https://developers.trello.com/v1.0/reference#cardsididmembers
 func (c *Card) AddMember(member *Member) (members []Member, err error) {
 	payload := url.Values{}
-	payload.Set("value", member.Id)
-	body, err := c.client.Post("/cards/"+c.Id+"/idMembers", payload)
+	payload.Set("value", member.ID)
+	body, err := c.client.Post("/cards/"+c.ID+"/idMembers", payload)
 	if err != nil {
 		return nil, err
 	}
@@ -131,11 +139,12 @@ func (c *Card) AddMember(member *Member) (members []Member, err error) {
 	return members, nil
 }
 
-// Remove a member from a card
+// RemoveMember - Remove a member from a card
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-idmembers-idmember-delete
 // The RemoveMember function requires a member (pointer) to delete
 // It returns the resulting member-list
 func (c *Card) RemoveMember(member *Member) (members []Member, err error) {
-	body, err := c.client.Delete("/cards/" + c.Id + "/idMembers/" + member.Id)
+	body, err := c.client.Delete("/cards/" + c.ID + "/idMembers/" + member.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +161,10 @@ func (c *Card) RemoveMember(member *Member) (members []Member, err error) {
 	return members, nil
 }
 
+// Attachments - Get Attachments on a Card
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-attachments-get
 func (c *Card) Attachments() (attachments []Attachment, err error) {
-	body, err := c.client.Get("/cards/" + c.Id + "/attachments")
+	body, err := c.client.Get("/cards/" + c.ID + "/attachments")
 	if err != nil {
 		return
 	}
@@ -166,9 +177,10 @@ func (c *Card) Attachments() (attachments []Attachment, err error) {
 }
 
 // Attachment will return the specified attachment on the card
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-attachments-idattachment-get
 // https://developers.trello.com/advanced-reference/card#get-1-cards-card-id-or-shortlink-attachments-idattachment
-func (c *Card) Attachment(attachmentId string) (*Attachment, error) {
-	body, err := c.client.Get("/cards/" + c.Id + "/attachments/" + attachmentId)
+func (c *Card) Attachment(attachmentID string) (*Attachment, error) {
+	body, err := c.client.Get("/cards/" + c.ID + "/attachments/" + attachmentID)
 	if err != nil {
 		return nil, err
 	}
@@ -179,8 +191,10 @@ func (c *Card) Attachment(attachmentId string) (*Attachment, error) {
 	return attachment, err
 }
 
+// Actions - Get Actions on a card
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-actions-get
 func (c *Card) Actions() (actions []Action, err error) {
-	body, err := c.client.Get("/cards/" + c.Id + "/actions")
+	body, err := c.client.Get("/cards/" + c.ID + "/actions")
 	if err != nil {
 		return
 	}
@@ -192,6 +206,8 @@ func (c *Card) Actions() (actions []Action, err error) {
 	return
 }
 
+// AddChecklist - Create a Checklist on a Card
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-checklists-post
 // AddChecklist will add a checklist to the card.
 // https://developers.trello.com/advanced-reference/card#post-1-cards-card-id-or-shortlink-checklists
 func (c *Card) AddChecklist(name string) (*Checklist, error) {
@@ -199,7 +215,7 @@ func (c *Card) AddChecklist(name string) (*Checklist, error) {
 
 	payload := url.Values{}
 	payload.Set("name", name)
-	body, err := c.client.Post("/cards/"+c.Id+"/checklists", payload)
+	body, err := c.client.Post("/cards/"+c.ID+"/checklists", payload)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +235,7 @@ func (c *Card) AddComment(text string) (*Action, error) {
 	payload := url.Values{}
 	payload.Set("text", text)
 
-	body, err := c.client.Post("/cards/"+c.Id+"/actions/comments", payload)
+	body, err := c.client.Post("/cards/"+c.ID+"/actions/comments", payload)
 	if err != nil {
 		return nil, err
 	}
@@ -230,11 +246,12 @@ func (c *Card) AddComment(text string) (*Action, error) {
 	return newAction, nil
 }
 
+// MoveToList - Move a card to a list
 func (c *Card) MoveToList(dstList List) (*Card, error) {
 	payload := url.Values{}
-	payload.Set("value", dstList.Id)
+	payload.Set("value", dstList.ID)
 
-	body, err := c.client.Put("/cards/"+c.Id+"/idList", payload)
+	body, err := c.client.Put("/cards/"+c.ID+"/idList", payload)
 	if err != nil {
 		return nil, err
 	}
@@ -247,12 +264,14 @@ func (c *Card) MoveToList(dstList List) (*Card, error) {
 	return &card, nil
 }
 
+// Move - Move Card Position (Update a Card)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-put
 //pos can be "bottom", "top" or a positive number
 func (c *Card) Move(pos string) (*Card, error) {
 	payload := url.Values{}
 	payload.Set("value", pos)
 
-	body, err := c.client.Put("/cards/"+c.Id+"/pos", payload)
+	body, err := c.client.Put("/cards/"+c.ID+"/pos", payload)
 	if err != nil {
 		return nil, err
 	}
@@ -265,25 +284,31 @@ func (c *Card) Move(pos string) (*Card, error) {
 	return &card, nil
 }
 
+// Delete - Delete a Card
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-delete
 func (c *Card) Delete() error {
-	_, err := c.client.Delete("/cards/" + c.Id)
+	_, err := c.client.Delete("/cards/" + c.ID)
 	return err
 }
 
+// Archive - Archive a Card
+// - URL Link?
 //If mode is true, card is archived, otherwise it's unarchived (returns to the board)
 func (c *Card) Archive(mode bool) error {
 	payload := url.Values{}
 	payload.Set("value", strconv.FormatBool(mode))
 
-	_, err := c.client.Put("/cards/"+c.Id+"/closed", payload)
+	_, err := c.client.Put("/cards/"+c.ID+"/closed", payload)
 	return err
 }
 
+// SetName - Set Name on Card (Update a Card)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-put
 func (c *Card) SetName(name string) (*Card, error) {
 	payload := url.Values{}
 	payload.Set("value", name)
 
-	body, err := c.client.Put("/cards/"+c.Id+"/name", payload)
+	body, err := c.client.Put("/cards/"+c.ID+"/name", payload)
 	if err != nil {
 		return nil, err
 	}
@@ -296,11 +321,13 @@ func (c *Card) SetName(name string) (*Card, error) {
 	return &card, nil
 }
 
+// SetDescription - Set Description on Card (Update a Card)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-put
 func (c *Card) SetDescription(desc string) (*Card, error) {
 	payload := url.Values{}
 	payload.Set("value", desc)
 
-	body, err := c.client.Put("/cards/"+c.Id+"/desc", payload)
+	body, err := c.client.Put("/cards/"+c.ID+"/desc", payload)
 	if err != nil {
 		return nil, err
 	}
@@ -313,12 +340,14 @@ func (c *Card) SetDescription(desc string) (*Card, error) {
 	return &card, nil
 }
 
-//Returns an array of cards labels ids
+// AddLabel - Add Label to a Card
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-idlabels-post
+// Returns an array of cards labels ids
 func (c *Card) AddLabel(id string) ([]string, error) {
 	payload := url.Values{}
 	payload.Set("value", id)
 
-	body, err := c.client.Post("/cards/"+c.Id+"/idLabels", payload)
+	body, err := c.client.Post("/cards/"+c.ID+"/idLabels", payload)
 	if err != nil {
 		return nil, err
 	}
@@ -331,12 +360,14 @@ func (c *Card) AddLabel(id string) ([]string, error) {
 	return ids, nil
 }
 
+// AddNewLabel - Add a Label to a Card
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-idlabels-post
 func (c *Card) AddNewLabel(name, color string) (*Label, error) {
 	payload := url.Values{}
 	payload.Set("name", name)
 	payload.Set("color", color)
 
-	body, err := c.client.Post("/cards/"+c.Id+"/labels", payload)
+	body, err := c.client.Post("/cards/"+c.ID+"/labels", payload)
 	if err != nil {
 		return nil, err
 	}

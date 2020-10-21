@@ -24,6 +24,7 @@ import (
 	"strings"
 )
 
+// Client - Trello Client Type
 type Client struct {
 	client   *http.Client
 	endpoint string
@@ -48,6 +49,7 @@ func (c *Client) do(req *http.Request) ([]byte, error) {
 	return body, nil
 }
 
+// Get - HTTP GET
 func (c *Client) Get(resource string) ([]byte, error) {
 	req, err := http.NewRequest("GET", c.endpoint+resource, nil)
 	if err != nil {
@@ -56,6 +58,7 @@ func (c *Client) Get(resource string) ([]byte, error) {
 	return c.do(req)
 }
 
+// Post - HTTP POST
 func (c *Client) Post(resource string, data url.Values) ([]byte, error) {
 	req, err := http.NewRequest("POST", c.endpoint+resource, strings.NewReader(data.Encode()))
 	if err != nil {
@@ -66,6 +69,7 @@ func (c *Client) Post(resource string, data url.Values) ([]byte, error) {
 	return c.do(req)
 }
 
+// Put - HTTP PUT
 func (c *Client) Put(resource string, data url.Values) ([]byte, error) {
 	req, err := http.NewRequest("PUT", c.endpoint+resource, strings.NewReader(data.Encode()))
 	if err != nil {
@@ -76,6 +80,7 @@ func (c *Client) Put(resource string, data url.Values) ([]byte, error) {
 	return c.do(req)
 }
 
+// Delete - HTTP DELETE
 func (c *Client) Delete(resource string) ([]byte, error) {
 	req, err := http.NewRequest("DELETE", c.endpoint+resource, nil)
 	if err != nil {
@@ -85,13 +90,15 @@ func (c *Client) Delete(resource string) ([]byte, error) {
 	return c.do(req)
 }
 
-type bearerRoundTripper struct {
+// BearerRoundTripper Type
+type BearerRoundTripper struct {
 	Delegate http.RoundTripper
 	key      string
 	token    *string
 }
 
-func (b *bearerRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+// RoundTrip encodes key and token
+func (b *BearerRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	if b.Delegate == nil {
 		b.Delegate = http.DefaultTransport
 	}
@@ -108,8 +115,8 @@ func (b *bearerRoundTripper) RoundTrip(req *http.Request) (*http.Response, error
 // See https://trello.com/app-key to get your applicationKey
 // See https://trello.com/1/connect?key=MYKEYFROMABOVE&name=MYAPPNAME&response_type=token&scope=read,write&expiration=1d
 // to get a read/write token good for 1 day
-func NewBearerTokenTransport(applicationKey string, token *string) *bearerRoundTripper {
-	return &bearerRoundTripper{
+func NewBearerTokenTransport(applicationKey string, token *string) *BearerRoundTripper {
+	return &BearerRoundTripper{
 		key:   applicationKey,
 		token: token,
 	}

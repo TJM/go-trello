@@ -23,11 +23,12 @@ import (
 	"strconv"
 )
 
+// ChecklistItem - Trello Checklist Item (member of Checklist)
 type ChecklistItem struct {
 	client   *Client
-	listID   string // back pointer to the parent Id
+	listID   string // back pointer to the parent ID
 	State    string `json:"state"`
-	Id       string `json:"id"`
+	ID       string `json:"id"`
 	Name     string `json:"name"`
 	NameData struct {
 		Emoji struct{} `json:"emoji"`
@@ -35,8 +36,10 @@ type ChecklistItem struct {
 	Pos int `json:"pos"`
 }
 
+// Delete - Delete a ChecklistItem from Checklist
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-checklists/#api-checklists-id-checkitems-idcheckitem-delete
 func (i *ChecklistItem) Delete() error {
-	_, err := i.client.Delete("/checklists/" + i.listID + "/checkItems/" + i.Id)
+	_, err := i.client.Delete("/checklists/" + i.listID + "/checkItems/" + i.ID)
 	return err
 }
 
@@ -44,10 +47,10 @@ func (i *ChecklistItem) Delete() error {
 // https://developers.trello.com/advanced-reference/checklist
 type Checklist struct {
 	client     *Client
-	Id         string          `json:"id"`
+	ID         string          `json:"id"`
 	Name       string          `json:"name"`
-	IdBoard    string          `json:"idBoard"`
-	IdCard     string          `json:"idCard"`
+	IDBoard    string          `json:"idBoard"`
+	IDCard     string          `json:"idCard"`
 	Pos        float32         `json:"pos"`
 	CheckItems []ChecklistItem `json:"checkItems"`
 }
@@ -55,7 +58,7 @@ type Checklist struct {
 // Delete will delete the checklist
 // https://developers.trello.com/advanced-reference/checklist#delete-1-checklists-idchecklist
 func (c *Checklist) Delete() error {
-	_, err := c.client.Delete("/checklists/" + c.Id)
+	_, err := c.client.Delete("/checklists/" + c.ID)
 	return err
 }
 
@@ -85,7 +88,7 @@ func (c *Checklist) AddItem(name string, pos *string, checked *bool) (*Checklist
 	if checked != nil {
 		payload.Set("checked", strconv.FormatBool(*checked))
 	}
-	body, err := c.client.Post("/checklist/"+c.Id+"/checkItems", payload)
+	body, err := c.client.Post("/checklist/"+c.ID+"/checkItems", payload)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +98,7 @@ func (c *Checklist) AddItem(name string, pos *string, checked *bool) (*Checklist
 		return nil, err
 	}
 	item.client = c.client
-	item.listID = c.Id
+	item.listID = c.ID
 
 	return item, err
 }

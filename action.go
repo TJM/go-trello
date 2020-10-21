@@ -16,53 +16,54 @@ limitations under the License.
 
 package trello
 
+// Action struct
 type Action struct {
 	client          *Client
-	Id              string `json:"id"`
-	IdMemberCreator string `json:"idMemberCreator"`
-	Data struct {
+	ID              string `json:"id"`
+	IDMemberCreator string `json:"idMemberCreator"`
+	Data            struct {
 		DateLastEdited string `json:"dateLastEdited"`
-		ListBefore struct {
-			Id   string `json:"id"`
+		ListBefore     struct {
+			ID   string `json:"id"`
 			Name string `json:"name"`
 		} `json:"listBefore"`
 		ListAfter struct {
-			Id   string `json:"id"`
+			ID   string `json:"id"`
 			Name string `json:"name"`
 		} `json:"listAfter"`
 		CheckItem struct {
-			Id    string `json:"id"`
+			ID    string `json:"id"`
 			State string `json:"state"`
 			Name  string `json:"name"`
 		} `json:"checkItem"`
 		CheckList struct {
-			Id   string `json:"id"`
+			ID   string `json:"id"`
 			Name string `json:"name"`
 		} `json:"checklist"`
 		List struct {
-			Id   string `json:"id"`
+			ID   string `json:"id"`
 			Name string `json:"name"`
 		} `json:"list"`
 		TextData struct {
 			Emoji struct{} `json:"emoji"`
 		} `json:"textData"`
 		Board struct {
-			Id        string `json:"id"`
+			ID        string `json:"id"`
 			Name      string `json:"name"`
 			ShortLink string `json:"shortLink"`
 		} `json:"board"`
 		Card struct {
-			Id        string `json:"id"`
+			ID        string `json:"id"`
 			Name      string `json:"name"`
 			ShortLink string `json:"shortLink"`
-			IdShort   int    `json:"idShort"`
+			IDShort   int    `json:"idShort"`
 		} `json:"card"`
 		Text string `json:"text"`
 	} `json:"data"`
-	Type ActionType `json:"type"`
-	Date string `json:"date"`
+	Type          ActionType `json:"type"`
+	Date          string     `json:"date"`
 	MemberCreator struct {
-		Id         string `json:"id"`
+		ID         string `json:"id"`
 		AvatarHash string `json:"avatarHash"`
 		FullName   string `json:"fullName"`
 		Initials   string `json:"initials"`
@@ -70,8 +71,10 @@ type Action struct {
 	} `json:"memberCreator"`
 }
 
+// ActionType Action String
 type ActionType string
 
+// Actions
 const (
 	AddAdminToBoard                   ActionType = "addAdminToBoard"
 	AddAdminToOrganization            ActionType = "addAdminToOrganization"

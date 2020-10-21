@@ -21,22 +21,25 @@ import (
 	"net/url"
 )
 
+// Organization - Trello Organization Type
 type Organization struct {
 	client      *Client
-	Id          string   `json:"id"`
+	ID          string   `json:"id"`
 	Name        string   `json:"name"`
 	DisplayName string   `json:"displayName"`
 	Desc        string   `json:"desc"`
 	DescData    string   `json:"descData"`
-	Url         string   `json:"url"`
+	URL         string   `json:"url"`
 	Website     string   `json:"website"`
 	LogoHash    string   `json:"logoHash"`
 	Products    []string `json:"products"`
 	PowerUps    []string `json:"powerUps"`
 }
 
-func (c *Client) Organization(orgId string) (organization *Organization, err error) {
-	body, err := c.Get("/organization/" + orgId)
+// Organization - Get Organization by orgId (string)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-organizations/#api-organizations-id-get
+func (c *Client) Organization(orgID string) (organization *Organization, err error) {
+	body, err := c.Get("/organization/" + orgID)
 	if err != nil {
 		return
 	}
@@ -46,8 +49,10 @@ func (c *Client) Organization(orgId string) (organization *Organization, err err
 	return
 }
 
+// Members - Get the Members of an Organization
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-organizations/#api-organizations-id-members-get
 func (o *Organization) Members() (members []Member, err error) {
-	body, err := o.client.Get("/organization/" + o.Id + "/members")
+	body, err := o.client.Get("/organization/" + o.ID + "/members")
 	if err != nil {
 		return
 	}
@@ -59,8 +64,10 @@ func (o *Organization) Members() (members []Member, err error) {
 	return
 }
 
+// Boards - Get Boards in an Organization
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-organizations/#api-organizations-id-boards-get
 func (o *Organization) Boards() (boards []Board, err error) {
-	body, err := o.client.Get("/organizations/" + o.Id + "/boards")
+	body, err := o.client.Get("/organizations/" + o.ID + "/boards")
 	if err != nil {
 		return
 	}
@@ -72,12 +79,13 @@ func (o *Organization) Boards() (boards []Board, err error) {
 	return
 }
 
-// AddBoard creates a new Board
+// AddBoard  - Create a new Board in the organization
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-post
 func (o *Organization) AddBoard(name string) (*Board, error) {
 
 	payload := url.Values{}
 	payload.Set("name", name)
-	payload.Set("idOrganization", o.Id)
+	payload.Set("idOrganization", o.ID)
 
 	body, err := o.client.Post("/boards", payload)
 	if err != nil {
