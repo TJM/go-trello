@@ -90,7 +90,11 @@ func (l *List) AddCard(opts Card) (*Card, error) {
 	payload := url.Values{}
 	payload.Set("name", opts.Name)
 	payload.Set("desc", opts.Desc)
-	payload.Set("pos", strconv.FormatFloat(opts.Pos, 'g', -1, 64))
+	if opts.Pos == 0.0 {
+		payload.Set("pos", "bottom")
+	} else {
+		payload.Set("pos", strconv.FormatFloat(opts.Pos, 'g', -1, 64))
+	}
 	payload.Set("due", opts.Due)
 	payload.Set("idList", opts.IdList)
 	payload.Set("idMembers", strings.Join(opts.IdMembers, ","))
