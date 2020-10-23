@@ -33,20 +33,28 @@ func TestBoard(t *testing.T) {
 	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
 	g.Describe("Board tests", func() {
+		var Client *trello.Client
 		var Board *trello.Board
 		var TestBoardName string
 
 		g.Before(func() {
 			TestBoardName = fmt.Sprintf("GoTestTrello-%v", time.Now())
+
 		})
 
-		g.It("should test all the things Board like", func() {
+		g.It("should create a board", func() {
 			Board, err = Client.CreateBoard(TestBoardName)
 			Expect(err).To(BeNil())
 			Expect(Board.Name).To(Equal(TestBoardName))
+		})
+
+		g.It("should get a board", func() {
 			Board, err = Client.Board(Board.ID)
 			Expect(err).To(BeNil())
 			Expect(Board.Name).To(Equal(TestBoardName))
+		})
+
+		g.It("should list the lists", func() {
 			lists, err := Board.Lists()
 			Expect(err).To(BeNil())
 			Expect(lists[0].Name).To(Equal("To Do"))
@@ -54,6 +62,15 @@ func TestBoard(t *testing.T) {
 			Expect(lists[2].Name).To(Equal("Done"))
 		})
 
+		g.It("should get a card using two different methods", func() {
+			card, err := Board.Card("56cdb3e0f7f4609c2b6f15e4")
+			Expect(err).To(BeNil())
+			Expect(card.Name).To(Equal("a card"))
+			sameCard, err := Client.Card("8sB7wile")
+			Expect(err).To(BeNil())
+			Expect(sameCard.Name).To(Equal("a card"))
+			Expect(sameCard.Desc).To(Equal(card.Desc))
+		})
 	})
 
 }
