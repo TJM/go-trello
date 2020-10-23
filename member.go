@@ -18,7 +18,6 @@ package trello
 
 import (
 	"encoding/json"
-	"net/url"
 	"strings"
 )
 
@@ -99,21 +98,7 @@ func (m *Member) Boards(field ...string) (boards []Board, err error) {
 // AddBoard creates a new Board
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-post
 func (m *Member) AddBoard(name string) (*Board, error) {
-
-	payload := url.Values{}
-	payload.Set("name", name)
-
-	body, err := m.client.Post("/boards", payload)
-	if err != nil {
-		return nil, err
-	}
-	var board Board
-	if err = json.Unmarshal(body, &board); err != nil {
-		return nil, err
-	}
-
-	board.client = m.client
-	return &board, nil
+	return m.client.CreateBoard(name)
 }
 
 // Notifications - https://developer.atlassian.com/cloud/trello/rest/api-group-members/#api-members-id-notifications-get
