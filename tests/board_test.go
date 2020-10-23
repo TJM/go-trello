@@ -49,9 +49,9 @@ func TestBoard(t *testing.T) {
 			Expect(Board.Name).To(Equal(TestBoardName))
 			lists, err := Board.Lists()
 			Expect(err).To(BeNil())
-			Expect(lists[0].Name).To(Equal("ToDo"))
+			Expect(lists[0].Name).To(Equal("To Do"))
 			Expect(lists[1].Name).To(Equal("Doing"))
-			Expect(lists[1].Name).To(Equal("Done"))
+			Expect(lists[2].Name).To(Equal("Done"))
 		})
 
 	})
