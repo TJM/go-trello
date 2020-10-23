@@ -208,8 +208,6 @@ func (c *Card) Actions() (actions []Action, err error) {
 
 // AddChecklist - Create a Checklist on a Card
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-checklists-post
-// AddChecklist will add a checklist to the card.
-// https://developers.trello.com/advanced-reference/card#post-1-cards-card-id-or-shortlink-checklists
 func (c *Card) AddChecklist(name string) (*Checklist, error) {
 	newList := &Checklist{}
 
@@ -291,8 +289,8 @@ func (c *Card) Delete() error {
 	return err
 }
 
-// Archive - Archive a Card
-// - URL Link?
+// Archive - Archive (close) a Card
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-put
 //If mode is true, card is archived, otherwise it's unarchived (returns to the board)
 func (c *Card) Archive(mode bool) error {
 	payload := url.Values{}
