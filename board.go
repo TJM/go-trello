@@ -150,7 +150,7 @@ func (b *Board) SetBackground(background string) (err error) {
 
 // SetDescription - Sets background on board
 func (b *Board) SetDescription(description string) (err error) {
-	return b.Update("description", description)
+	return b.Update("desc", description)
 }
 
 // Update - Update a Board (path and value, see API docs for details)
