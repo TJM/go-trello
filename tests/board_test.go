@@ -47,13 +47,13 @@ func TestBoard(t *testing.T) {
 			Expect(Board.Name).To(Equal(TestBoardName))
 		})
 
-		g.It("should get a board", func() {
+		g.It("should get a board by ID", func() {
 			Board, err = Client.Board(Board.ID)
 			Expect(err).To(BeNil())
 			Expect(Board.Name).To(Equal(TestBoardName))
 		})
 
-		g.It("should get the lists", func() {
+		g.It("should get the lists in a board", func() {
 			lists, err := Board.Lists()
 			Expect(err).To(BeNil())
 			Expect(lists[0].Name).To(Equal("To Do"))
@@ -61,7 +61,7 @@ func TestBoard(t *testing.T) {
 			Expect(lists[2].Name).To(Equal("Done"))
 		})
 
-		g.It("should change the background to red", func() {
+		g.It("should change the board background to red", func() {
 			err = Board.SetBackground("red")
 			Expect(err).To(BeNil())
 			Expect(Board.Prefs.Background).To(Equal("red"))
@@ -71,6 +71,15 @@ func TestBoard(t *testing.T) {
 			err = Board.SetDescription("something")
 			Expect(err).To(BeNil())
 			Expect(Board.Desc).To(Equal("something"))
+		})
+
+		g.It("should delete the board", func() {
+			boardID := Board.ID
+			err = Board.Delete()
+			Expect(err).To(BeNil())
+			_, err = Client.Board(boardID)
+			Expect(err).NotTo(BeNil())
+			//Expect(err).To(ContainSubstring("404")) // 404 - Not Found is good!
 		})
 
 	})
