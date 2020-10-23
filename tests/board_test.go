@@ -132,13 +132,9 @@ func TestBoard(t *testing.T) {
 		})
 
 		// Keep this test LAST for obvious reasons
-		g.It("should delete the board", func() {
-			boardID := Board.ID
+		g.After(func() {
 			err = Board.Delete()
 			Expect(err).To(BeNil())
-			_, err = Client.Board(boardID)
-			Expect(err).NotTo(BeNil())
-			//Expect(err).To(ContainSubstring("404")) // 404 - Not Found is good!
 		})
 
 	})

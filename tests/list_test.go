@@ -37,9 +37,6 @@ func TestList(t *testing.T) {
 
 		g.Before(func() {
 			TestBoardName = fmt.Sprintf("GoTestTrello-List-%v", time.Now())
-		})
-
-		g.It("needs a board to test with", func() {
 			Board, err = Client.CreateBoard(TestBoardName)
 			Expect(err).To(BeNil())
 			lists, err := Board.Lists()
@@ -86,13 +83,9 @@ func TestList(t *testing.T) {
 		})
 
 		// Keep this test LAST for obvious reasons
-		g.It("should delete the test board", func() {
-			boardID := Board.ID
+		g.After(func() {
 			err = Board.Delete()
 			Expect(err).To(BeNil())
-			_, err = Client.Board(boardID)
-			Expect(err).NotTo(BeNil())
-			//Expect(err).To(ContainSubstring("404")) // 404 - Not Found is good!
 		})
 
 	})
