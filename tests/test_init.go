@@ -1,10 +1,8 @@
 package tests
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"testing"
 
 	"github.com/TJM/go-trello"
 )
@@ -13,8 +11,8 @@ import (
 var Client *trello.Client
 var err error
 
-// TestMain - Test initialization
-func TestMain(m *testing.M) {
+// Test initialization
+func init() {
 	key := os.Getenv("API_KEY")
 	token := os.Getenv("API_TOKEN")
 	if key == "" || token == "" {
@@ -24,6 +22,4 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal("Error setting up client.")
 	}
-	fmt.Printf("Client: %#v", Client)
-
 }

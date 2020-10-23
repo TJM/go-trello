@@ -18,7 +18,6 @@ package tests
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -27,36 +26,141 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-//var Client *trello.Client
-var Card *trello.Board
-var TestCardName string
-
-func init() {
-	key := os.Getenv("API_KEY")
-	token := os.Getenv("API_TOKEN")
-	Client, err = trello.NewAuthClient(key, &token)
-	TestCardName = fmt.Sprintf("GoTestTrelloCard-%v", time.Now())
-}
 func TestCard(t *testing.T) {
 	g := goblin.Goblin(t)
 	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
 	g.Describe("Card tests", func() {
+		var Board *trello.Board
+		var Card *trello.Card
+		var Member *trello.Member
+		var TestBoardName string
 
-		g.It("should create a card", func() {
-			fmt.Printf(TestCardName)
+		g.Before(func() {
+			TestBoardName = fmt.Sprintf("GoTestTrello-Card-%v", time.Now())
+			Member, err = Client.Member("me")
+			Expect(err).To(BeNil())
+			Board, err = Client.CreateBoard(TestBoardName)
+			Expect(err).To(BeNil())
+			lists, err := Board.Lists()
+			Expect(err).To(BeNil())
+			list := &lists[0]
+			Card, err = list.AddCard(trello.Card{
+				Name: "Testing 123",
+				Desc: "Does this thing work?",
+			})
 			Expect(err).To(BeNil())
 		})
 
-		// g.It("should get a card using two different methods", func() {
-		// 	card, err := Board.Card("56cdb3e0f7f4609c2b6f15e4")
-		// 	Expect(err).To(BeNil())
-		// 	Expect(card.Name).To(Equal("a card"))
-		// 	sameCard, err := Client.Card("8sB7wile")
-		// 	Expect(err).To(BeNil())
-		// 	Expect(sameCard.Name).To(Equal("a card"))
-		// 	Expect(sameCard.Desc).To(Equal(card.Desc))
-		// })
+		g.It("should retrieve a card by ID", func() {
+			_, err = Client.Card(Card.ID)
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should get the checklists in a card", func() {
+			_, err := Card.Checklists()
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should add a member to a card", func() {
+			_, err = Card.AddMember(Member)
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should get the members of a card", func() {
+			_, err = Card.Members()
+			Expect(err).To(BeNil())
+			// It might be nice to check if "me" is in the members?
+		})
+
+		g.It("should remove a member from a card", func() {
+			_, err = Card.RemoveMember(Member)
+			Expect(err).To(BeNil())
+			// It might be nice to check if "me" is NOT in the members?
+		})
+
+		g.It("should get the attachments on a card", func() {
+			_, err = Card.Attachments()
+			Expect(err).To(BeNil())
+			// It might be nice to check attachments?
+		})
+
+		g.It("should get the actions on a card", func() {
+			_, err = Card.Actions()
+			Expect(err).To(BeNil())
+			// It might be nice to check attachments?
+		})
+
+		g.It("should add a checklist to a card", func() {
+			_, err = Card.AddChecklist("TrelloTesting")
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should add a comment to a card", func() {
+			_, err = Card.AddComment("Test Comment")
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should move a card to another list", func() {
+			lists, err := Board.Lists()
+			Expect(err).To(BeNil())
+			dest := lists[1]
+			Card, err = Card.MoveToList(dest)
+			Expect(err).To(BeNil())
+			Expect(Card.IDList).To(Equal(dest.ID))
+		})
+
+		g.It("should move a card position in the list (top)", func() {
+			Card, err = Card.Move("top")
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should setName on a card", func() {
+			Card, err = Card.SetName("A whole new name")
+			Expect(err).To(BeNil())
+			Expect(Card.Name).To(Equal("A whole new name"))
+		})
+
+		g.It("should setDescription on a card", func() {
+			Card, err = Card.SetDescription("A whole new description")
+			Expect(err).To(BeNil())
+			Expect(Card.Desc).To(Equal("A whole new description"))
+		})
+
+		g.It("should add a label to a card", func() {
+			labels, err := Board.Labels()
+			Expect(err).To(BeNil())
+			_, err = Card.AddLabel(labels[0].ID)
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should add a NEW label to a card", func() {
+			_, err = Card.AddNewLabel("NewLabel", "purple")
+			Expect(err).To(BeNil())
+		})
+
+		// Destructive Actions second to last
+		g.It("should archive (close) a card", func() {
+			err = Card.Archive(true)
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should un-archive (re-open) a card", func() {
+			err = Card.Archive(false)
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should delete a card", func() {
+			err = Card.Delete()
+			Expect(err).To(BeNil())
+		})
+
+		// Keep this test LAST for obvious reasons
+		g.After(func() {
+			err = Board.Delete()
+			Expect(err).To(BeNil())
+		})
+
 	})
 
 }
