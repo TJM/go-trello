@@ -88,7 +88,7 @@ func (c *Client) Boards() (boards []Board, err error) {
 	return
 }
 
-// Board - retrieves board by boardID
+// Board - Get board by boardID
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-get
 func (c *Client) Board(boardID string) (board *Board, err error) {
 	body, err := c.Get("/boards/" + boardID)
@@ -98,6 +98,83 @@ func (c *Client) Board(boardID string) (board *Board, err error) {
 
 	err = json.Unmarshal(body, &board)
 	board.client = c
+	return
+}
+
+// CreateBoard - Create Board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-post
+func (c *Client) CreateBoard(name string) (board *Board, err error) {
+	payload := url.Values{}
+	payload.Set("name", name)
+
+	body, err := c.Post("/boards", payload)
+	if err != nil {
+		return
+	}
+	if err = json.Unmarshal(body, &board); err != nil {
+		return
+	}
+
+	board.client = c
+	return
+}
+
+// Duplicate - Duplicate (Copy) Board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-post
+func (b *Board) Duplicate(keepCards bool) (board *Board, err error) {
+	keepFromSource := "none"
+	if keepCards {
+		keepFromSource = "cards"
+	}
+	payload := url.Values{}
+	payload.Set("idBoardSource", b.ID)
+	payload.Set("keepFromSource", keepFromSource)
+
+	body, err := b.client.Post("/boards", payload)
+	if err != nil {
+		return
+	}
+	if err = json.Unmarshal(body, &board); err != nil {
+		return
+	}
+
+	board.client = b.client
+	return
+}
+
+// SetBackground - Sets background on board
+// background can be a color or a background id
+func (b *Board) SetBackground(background string) (err error) {
+	return b.Update("prefs/background", background)
+}
+
+// SetDescription - Sets background on board
+func (b *Board) SetDescription(description string) (err error) {
+	return b.Update("description", description)
+}
+
+// Update - Update a Board (path and value, see API docs for details)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-put
+func (b *Board) Update(path, value string) (err error) {
+	payload := url.Values{}
+	payload.Set("value", value)
+
+	body, err := b.client.Put("/boards/"+b.ID+"/"+path, payload)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(body, &b)
+	return
+}
+
+// Delete - Update a Board (path and value, see API docs for details)
+//  *WARNING* - No Confirmation Dialog!
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-delete
+func (b *Board) Delete() (err error) {
+	_, err = b.client.Delete("/boards/" + b.ID)
+	if err != nil {
+		return
+	}
 	return
 }
 
