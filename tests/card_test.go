@@ -17,39 +17,46 @@ limitations under the License.
 package tests
 
 import (
-	"net/http"
+	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/TJM/go-trello"
 	goblin "github.com/franela/goblin"
 	. "github.com/onsi/gomega"
 )
 
-func TestClient(t *testing.T) {
+//var Client *trello.Client
+var Card *trello.Board
+var TestCardName string
+
+func init() {
+	key := os.Getenv("API_KEY")
+	token := os.Getenv("API_TOKEN")
+	Client, err = trello.NewAuthClient(key, &token)
+	TestCardName = fmt.Sprintf("GoTestTrelloCard-%v", time.Now())
+}
+func TestCard(t *testing.T) {
 	g := goblin.Goblin(t)
 	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
-	g.Describe("trello.Client tests", func() {
+	g.Describe("Card tests", func() {
 
-		g.It("NewClient should create a default client", func() {
-			Client, err = trello.NewClient()
+		g.It("should create a card", func() {
+			fmt.Printf(TestCardName)
 			Expect(err).To(BeNil())
 		})
 
-		g.It("NewCustomClient should create a custom client", func() {
-			Client, err = trello.NewCustomClient(http.DefaultClient)
-			Expect(err).To(BeNil())
-		})
-
-		g.It("NewAuthClient should create a client", func() {
-			key := os.Getenv("API_KEY")
-			token := os.Getenv("API_TOKEN")
-			Client, err = trello.NewAuthClient(key, &token)
-			Expect(err).To(BeNil())
-		})
-
-		// NOTE: Other methods will be tested as part of other tests
+		// g.It("should get a card using two different methods", func() {
+		// 	card, err := Board.Card("56cdb3e0f7f4609c2b6f15e4")
+		// 	Expect(err).To(BeNil())
+		// 	Expect(card.Name).To(Equal("a card"))
+		// 	sameCard, err := Client.Card("8sB7wile")
+		// 	Expect(err).To(BeNil())
+		// 	Expect(sameCard.Name).To(Equal("a card"))
+		// 	Expect(sameCard.Desc).To(Equal(card.Desc))
+		// })
 	})
 
 }
