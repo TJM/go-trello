@@ -30,22 +30,22 @@ func TestClient(t *testing.T) {
 	g := goblin.Goblin(t)
 	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
-	g.Describe("trello.Client tests", func() {
+	g.Describe("Client tests", func() {
 
 		g.It("NewClient should create a default client", func() {
-			Client, err = trello.NewClient()
+			_, err = trello.NewClient()
 			Expect(err).To(BeNil())
 		})
 
 		g.It("NewCustomClient should create a custom client", func() {
-			Client, err = trello.NewCustomClient(http.DefaultClient)
+			_, err = trello.NewCustomClient(http.DefaultClient)
 			Expect(err).To(BeNil())
 		})
 
 		g.It("NewAuthClient should create a client", func() {
 			key := os.Getenv("API_KEY")
 			token := os.Getenv("API_TOKEN")
-			Client, err = trello.NewAuthClient(key, &token)
+			_, err = trello.NewAuthClient(key, &token)
 			Expect(err).To(BeNil())
 		})
 
