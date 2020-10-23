@@ -53,14 +53,6 @@ func TestBoard(t *testing.T) {
 			Expect(Board.Name).To(Equal(TestBoardName))
 		})
 
-		g.It("should get the lists in a board", func() {
-			lists, err := Board.Lists()
-			Expect(err).To(BeNil())
-			Expect(lists[0].Name).To(Equal("To Do"))
-			Expect(lists[1].Name).To(Equal("Doing"))
-			Expect(lists[2].Name).To(Equal("Done"))
-		})
-
 		g.It("should change the board background to red", func() {
 			err = Board.SetBackground("red")
 			Expect(err).To(BeNil())
@@ -73,6 +65,75 @@ func TestBoard(t *testing.T) {
 			Expect(Board.Desc).To(Equal("something"))
 		})
 
+		g.It("should get the lists in a board", func() {
+			lists, err := Board.Lists()
+			Expect(err).To(BeNil())
+			// This part is somewhat dangerous if Trello changes the default Board Template
+			Expect(lists[0].Name).To(Equal("To Do"))
+			Expect(lists[1].Name).To(Equal("Doing"))
+			Expect(lists[2].Name).To(Equal("Done"))
+		})
+
+		g.It("should get the members of a board", func() {
+			_, err := Board.Members()
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should get the cards in a board", func() {
+			_, err := Board.Cards()
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should get the checklists in a board", func() {
+			_, err := Board.Checklists()
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should get the membercards in a board", func() {
+			// Retrieve member for "me"
+			member, err := Client.Member("me")
+			Expect(err).To(BeNil())
+			// Get "my" cards on this board (probably none)
+			_, err = Board.MemberCards(member.ID)
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should get the actions in a board", func() {
+			_, err := Board.Actions()
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should add a list to a board", func() {
+			list, err := Board.AddList(trello.List{
+				Name: "go-test",
+			})
+			Expect(err).To(BeNil())
+			Expect(list.Name).To(BeEquivalentTo("go-test"))
+			Expect(list.IDBoard).To(Equal(Board.ID))
+		})
+
+		g.It("should get the labels in a board", func() {
+			_, err := Board.Labels()
+			Expect(err).To(BeNil())
+		})
+
+		g.It("should add a label to a board", func() {
+			label, err := Board.AddLabel("go-testing", "orange")
+			Expect(err).To(BeNil())
+			Expect(label.Name).To(Equal("go-testing"))
+			Expect(label.Color).To(Equal("orange"))
+		})
+
+		g.It("should duplicate (copy) the board", func() {
+			new, err := Board.Duplicate("DUP-"+TestBoardName, true)
+			Expect(err).To(BeNil())
+			Expect(new.ID).NotTo(Equal(Board.ID))
+			// and cleanup
+			err = new.Delete()
+			Expect(err).To(BeNil())
+		})
+
+		// Keep this test LAST for obvious reasons
 		g.It("should delete the board", func() {
 			boardID := Board.ID
 			err = Board.Delete()
