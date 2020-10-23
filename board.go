@@ -73,21 +73,6 @@ type BoardBackground struct {
 	URL    string `json:"url"`
 }
 
-// Boards - retrieves list of all boards
-// - URL Link?
-func (c *Client) Boards() (boards []Board, err error) {
-	body, err := c.Get("/boards/")
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(body, &boards)
-	for i := range boards {
-		boards[i].client = c
-	}
-	return
-}
-
 // Board - Get board by boardID
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-get
 func (c *Client) Board(boardID string) (board *Board, err error) {
