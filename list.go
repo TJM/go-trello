@@ -69,12 +69,6 @@ func (l *List) Cards() (cards []Card, err error) {
 	return
 }
 
-// FreshCards - nil cards?
-func (l *List) FreshCards() (cards []Card, err error) {
-	l.cards = nil
-	return l.Cards()
-}
-
 // Actions - Get Actions for a List
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-lists/#api-lists-id-actions-get
 func (l *List) Actions() (actions []Action, err error) {

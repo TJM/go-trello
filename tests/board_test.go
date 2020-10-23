@@ -26,8 +26,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func init() {
-}
 func TestBoard(t *testing.T) {
 	g := goblin.Goblin(t)
 	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
@@ -37,7 +35,7 @@ func TestBoard(t *testing.T) {
 		var TestBoardName string
 
 		g.Before(func() {
-			TestBoardName = fmt.Sprintf("GoTestTrello-%v", time.Now())
+			TestBoardName = fmt.Sprintf("GoTestTrello-Board-%v", time.Now())
 
 		})
 
