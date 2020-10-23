@@ -106,7 +106,7 @@ func (c *Client) CreateBoard(name string) (board *Board, err error) {
 
 // Duplicate - Duplicate (Copy) Board
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-post
-func (b *Board) Duplicate(keepCards bool) (board *Board, err error) {
+func (b *Board) Duplicate(name string, keepCards bool) (board *Board, err error) {
 	keepFromSource := "none"
 	if keepCards {
 		keepFromSource = "cards"
@@ -114,6 +114,7 @@ func (b *Board) Duplicate(keepCards bool) (board *Board, err error) {
 	payload := url.Values{}
 	payload.Set("idBoardSource", b.ID)
 	payload.Set("keepFromSource", keepFromSource)
+	payload.Set("name", name)
 
 	body, err := b.client.Post("/boards", payload)
 	if err != nil {
