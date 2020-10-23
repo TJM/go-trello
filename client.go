@@ -90,15 +90,15 @@ func (c *Client) Delete(resource string) ([]byte, error) {
 	return c.do(req)
 }
 
-// BearerRoundTripper Type
-type BearerRoundTripper struct {
+// bearerRoundTripper Type
+type bearerRoundTripper struct {
 	Delegate http.RoundTripper
 	key      string
 	token    *string
 }
 
-// RoundTrip encodes key and token
-func (b *BearerRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+// RoundTrip encodes key and token as a delegate
+func (b *bearerRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	if b.Delegate == nil {
 		b.Delegate = http.DefaultTransport
 	}
@@ -109,14 +109,14 @@ func (b *BearerRoundTripper) RoundTrip(req *http.Request) (*http.Response, error
 	return b.Delegate.RoundTrip(req)
 }
 
-// NewBearerTokenTransport will return an http.RoundTripper which will add the
+// newBearerTokenTransport will return an http.RoundTripper which will add the
 // provided application id and token to API calls.
 //   If Delegate is left unset the http.DefaultTransport will be used.
 // See https://trello.com/app-key to get your applicationKey
 // See https://trello.com/1/connect?key=MYKEYFROMABOVE&name=MYAPPNAME&response_type=token&scope=read,write&expiration=1d
 // to get a read/write token good for 1 day
-func NewBearerTokenTransport(applicationKey string, token *string) *BearerRoundTripper {
-	return &BearerRoundTripper{
+func newBearerTokenTransport(applicationKey string, token *string) *bearerRoundTripper {
+	return &bearerRoundTripper{
 		key:   applicationKey,
 		token: token,
 	}
@@ -138,7 +138,7 @@ func NewCustomClient(client *http.Client) (*Client, error) {
 // NewBearerTokenTransport to create an http.Client which can be used as a trello
 // client.
 func NewAuthClient(applicationKey string, token *string) (*Client, error) {
-	rr := NewBearerTokenTransport(applicationKey, token)
+	rr := newBearerTokenTransport(applicationKey, token)
 	client := &http.Client{
 		Transport: rr,
 	}
