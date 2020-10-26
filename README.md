@@ -5,7 +5,7 @@ go-trello is a [Go](http://golang.org/) client package for accessing the [Trello
 [<img alt="Go package" src="https://golang.org/doc/gopher/pencil/gopherhat.jpg" width="20%" />](https://golang.org/)
 [<img src="https://d2k1ftgv7pobq7.cloudfront.net/meta/p/res/images/c13d1cd96a2cff30f0460a5e1860c5ea/header-logo-blue.svg" style="height: 80px; margin-bottom: 2em;">](https://trello.com/)
 
-[![GoDoc](https://godoc.org/github.com/TJM/go-trello?status.png)](https://godoc.org/github.com/TJM/go-trello)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/TJM/go-trello)](https://pkg.go.dev/github.com/TJM/go-trello)
 [![Travis](https://travis-ci.org/TJM/go-trello.svg?branch=master)](https://travis-ci.org/TJM/go-trello)
 [![Coverage Status](https://coveralls.io/repos/github/TJM/go-trello/badge.svg?branch=gotest)](https://coveralls.io/github/TJM/go-trello?branch=gotest)
 
