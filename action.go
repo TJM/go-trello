@@ -16,6 +16,8 @@ limitations under the License.
 
 package trello
 
+import "encoding/json"
+
 // Action struct
 type Action struct {
 	client          *Client
@@ -144,3 +146,19 @@ const (
 	UpdateOrganization                ActionType = "updateOrganization"
 	VoteOnCard                        ActionType = "voteOnCard"
 )
+
+func parseAction(body []byte, action *Action, client *Client) (err error) {
+	err = json.Unmarshal(body, &action)
+	if err == nil {
+		action.client = client
+	}
+	return
+}
+
+func parseListActions(body []byte, client *Client) (actions []Action, err error) {
+	err = json.Unmarshal(body, &actions)
+	for i := range actions {
+		actions[i].client = client
+	}
+	return
+}

@@ -16,36 +16,51 @@ type Label struct {
 	Uses    int    `json:"uses"`
 }
 
-// UpdateName - Update Name on a Label (Update a Label)
+// SetName - Set Name on a Label (Update a Label)
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-labels/#api-labels-id-put
-func (l *Label) UpdateName(name string) (err error) {
-	payload := url.Values{}
-	payload.Set("value", name)
-
-	body, err := l.client.Put("/labels/"+l.ID+"/name", payload)
-	if err != nil {
-		return
-	}
-	return json.Unmarshal(body, l)
+func (l *Label) SetName(name string) (err error) {
+	return l.Update("name", name)
 }
 
-// UpdateColor - Update Color for Label (Update a Label)
+// SetColor - Set Color for Label (Update a Label)
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-labels/#api-labels-id-put
 // Color can be null
-func (l *Label) UpdateColor(color string) (err error) {
-	payload := url.Values{}
-	payload.Set("value", color)
-
-	body, err := l.client.Put("/labels/"+l.ID+"/color", payload)
-	if err != nil {
-		return
-	}
-	return json.Unmarshal(body, l)
+func (l *Label) SetColor(color string) (err error) {
+	return l.Update("color", color)
 }
 
-// DeleteLabel - Delete a Label
+// Update - Update a Label (path and value, see API docs for details)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-put
+func (l *Label) Update(path, value string) (err error) {
+	payload := url.Values{}
+	payload.Set("value", value)
+
+	body, err := l.client.Put("/labels/"+l.ID+"/"+path, payload)
+	if err == nil {
+		err = parseLabel(body, l, l.client)
+	}
+	return
+}
+
+// Delete - Delete a Label
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-labels/#api-labels-id-delete
-func (l *Label) DeleteLabel() error {
+func (l *Label) Delete() error {
 	_, err := l.client.Delete("/labels/" + l.ID)
 	return err
+}
+
+func parseLabel(body []byte, label *Label, client *Client) (err error) {
+	err = json.Unmarshal(body, &label)
+	if err == nil {
+		label.client = client
+	}
+	return
+}
+
+func parseListLabels(body []byte, client *Client) (labels []Label, err error) {
+	err = json.Unmarshal(body, &labels)
+	for i := range labels {
+		labels[i].client = client
+	}
+	return
 }

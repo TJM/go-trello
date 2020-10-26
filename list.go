@@ -37,62 +37,38 @@ type List struct {
 // List - Get List by listID (string)
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-lists/#api-lists-id-get
 func (c *Client) List(listID string) (list *List, err error) {
+	list = &List{}
 	body, err := c.Get("/lists/" + listID)
-	if err != nil {
-		return
+	if err == nil {
+		err = parseList(body, list, c)
 	}
-
-	err = json.Unmarshal(body, &list)
-	list.client = c
 	return
 }
 
 // Cards - Get Cards in a List
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-lists/#api-lists-id-cards-get
 func (l *List) Cards() (cards []Card, err error) {
-	if l.cards != nil {
-		return l.cards, nil
-	}
 	body, err := l.client.Get("/lists/" + l.ID + "/cards")
-	if err != nil {
-		return
+	if err == nil {
+		cards, err = parseListCards(body, l.client)
 	}
-
-	err = json.Unmarshal(body, &cards)
-	for i := range cards {
-		cards[i].client = l.client
-		for j := range cards[i].Labels {
-			cards[i].Labels[j].client = l.client
-		}
-	}
-	l.cards = cards
 	return
-}
-
-// FreshCards - nil cards?
-func (l *List) FreshCards() (cards []Card, err error) {
-	l.cards = nil
-	return l.Cards()
 }
 
 // Actions - Get Actions for a List
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-lists/#api-lists-id-actions-get
 func (l *List) Actions() (actions []Action, err error) {
 	body, err := l.client.Get("/lists/" + l.ID + "/actions")
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(body, &actions)
-	for i := range actions {
-		actions[i].client = l.client
+	if err == nil {
+		actions, err = parseListActions(body, l.client)
 	}
 	return
 }
 
 // AddCard creates with the attributes of the supplied Card struct
 // https://developers.trello.com/advanced-reference/card#post-1-cards
-func (l *List) AddCard(opts Card) (*Card, error) {
+func (l *List) AddCard(opts Card) (card *Card, err error) {
+	card = &Card{}
 	opts.IDList = l.ID
 
 	payload := url.Values{}
@@ -108,44 +84,51 @@ func (l *List) AddCard(opts Card) (*Card, error) {
 	payload.Set("idMembers", strings.Join(opts.IDMembers, ","))
 
 	body, err := l.client.Post("/cards", payload)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		err = parseCard(body, card, l.client)
 	}
-
-	var card Card
-	if err = json.Unmarshal(body, &card); err != nil {
-		return nil, err
-	}
-	card.client = l.client
-	return &card, nil
+	return
 }
 
 // Archive - Archive List
 //If mode is true, list is archived, otherwise it's unarchived (returns to the board)
-func (l *List) Archive(mode bool) error {
+func (l *List) Archive(mode bool) (err error) {
 	payload := url.Values{}
 	payload.Set("value", strconv.FormatBool(mode))
 
-	_, err := l.client.Put("/lists/"+l.ID+"/closed", payload)
-	return err
+	body, err := l.client.Put("/lists/"+l.ID+"/closed", payload)
+	if err == nil {
+		err = parseList(body, l, l.client)
+	}
+	return
 }
 
 // Move - Move a List (Update a List)
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-lists/#api-lists-id-put
 //pos can be "bottom", "top" or a positive number
-func (l *List) Move(pos string) (*List, error) {
+func (l *List) Move(pos string) (err error) {
 	payload := url.Values{}
 	payload.Set("value", pos)
 
 	body, err := l.client.Put("/lists/"+l.ID+"/pos", payload)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		err = parseList(body, l, l.client)
 	}
+	return
+}
 
-	var list List
-	if err = json.Unmarshal(body, &list); err != nil {
-		return nil, err
+func parseList(body []byte, list *List, client *Client) (err error) {
+	err = json.Unmarshal(body, &list)
+	if err == nil {
+		list.client = client
 	}
-	list.client = l.client
-	return &list, nil
+	return
+}
+
+func parseListLists(body []byte, client *Client) (lists []List, err error) {
+	err = json.Unmarshal(body, &lists)
+	for i := range lists {
+		lists[i].client = client
+	}
+	return
 }

@@ -73,31 +73,80 @@ type BoardBackground struct {
 	URL    string `json:"url"`
 }
 
-// Boards - retrieves list of all boards
-// - URL Link?
-func (c *Client) Boards() (boards []Board, err error) {
-	body, err := c.Get("/boards/")
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(body, &boards)
-	for i := range boards {
-		boards[i].client = c
+// Board - Get board by boardID
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-get
+func (c *Client) Board(boardID string) (board *Board, err error) {
+	board = &Board{}
+	body, err := c.Get("/boards/" + boardID)
+	if err == nil {
+		err = parseBoard(body, board, c)
 	}
 	return
 }
 
-// Board - retrieves board by boardID
-// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-get
-func (c *Client) Board(boardID string) (board *Board, err error) {
-	body, err := c.Get("/boards/" + boardID)
-	if err != nil {
-		return
-	}
+// CreateBoard - Create Board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-post
+func (c *Client) CreateBoard(name string) (board *Board, err error) {
+	board = &Board{}
+	payload := url.Values{}
+	payload.Set("name", name)
 
-	err = json.Unmarshal(body, &board)
-	board.client = c
+	body, err := c.Post("/boards", payload)
+	if err == nil {
+		err = parseBoard(body, board, c)
+	}
+	return
+}
+
+// Duplicate - Duplicate (Copy) Board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-post
+func (b *Board) Duplicate(name string, keepCards bool) (board *Board, err error) {
+	board = &Board{}
+	keepFromSource := "none"
+	if keepCards {
+		keepFromSource = "cards"
+	}
+	payload := url.Values{}
+	payload.Set("idBoardSource", b.ID)
+	payload.Set("keepFromSource", keepFromSource)
+	payload.Set("name", name)
+
+	body, err := b.client.Post("/boards", payload)
+	if err == nil {
+		err = parseBoard(body, board, b.client)
+	}
+	return
+}
+
+// SetBackground - Sets background on board
+// background can be a color or a background id
+func (b *Board) SetBackground(background string) (err error) {
+	return b.Update("prefs/background", background)
+}
+
+// SetDescription - Sets background on board
+func (b *Board) SetDescription(description string) (err error) {
+	return b.Update("desc", description)
+}
+
+// Update - Update a Board (path and value, see API docs for details)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-put
+func (b *Board) Update(path, value string) (err error) {
+	payload := url.Values{}
+	payload.Set("value", value)
+
+	body, err := b.client.Put("/boards/"+b.ID+"/"+path, payload)
+	if err == nil {
+		err = parseBoard(body, b, b.client)
+	}
+	return
+}
+
+// Delete - Update a Board (path and value, see API docs for details)
+//  *WARNING* - No Confirmation Dialog!
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-delete
+func (b *Board) Delete() (err error) {
+	_, err = b.client.Delete("/boards/" + b.ID)
 	return
 }
 
@@ -105,13 +154,8 @@ func (c *Client) Board(boardID string) (board *Board, err error) {
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-lists-get
 func (b *Board) Lists() (lists []List, err error) {
 	body, err := b.client.Get("/boards/" + b.ID + "/lists")
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(body, &lists)
-	for i := range lists {
-		lists[i].client = b.client
+	if err == nil {
+		lists, err = parseListLists(body, b.client)
 	}
 	return
 }
@@ -120,13 +164,8 @@ func (b *Board) Lists() (lists []List, err error) {
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-members-get
 func (b *Board) Members() (members []Member, err error) {
 	body, err := b.client.Get("/boards/" + b.ID + "/members")
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(body, &members)
-	for i := range members {
-		members[i].client = b.client
+	if err == nil {
+		members, err = parseListMembers(body, b.client)
 	}
 	return
 }
@@ -135,13 +174,8 @@ func (b *Board) Members() (members []Member, err error) {
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-cards-get
 func (b *Board) Cards() (cards []Card, err error) {
 	body, err := b.client.Get("/boards/" + b.ID + "/cards")
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(body, &cards)
-	for i := range cards {
-		cards[i].client = b.client
+	if err == nil {
+		cards, err = parseListCards(body, b.client)
 	}
 	return
 }
@@ -149,13 +183,11 @@ func (b *Board) Cards() (cards []Card, err error) {
 // Card - Get a card on a board
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-cards-idcard-get
 func (b *Board) Card(IDCard string) (card *Card, err error) {
+	card = &Card{}
 	body, err := b.client.Get("/boards/" + b.ID + "/cards/" + IDCard)
-	if err != nil {
-		return
+	if err == nil {
+		err = parseCard(body, card, b.client)
 	}
-
-	err = json.Unmarshal(body, &card)
-	card.client = b.client
 	return
 }
 
@@ -163,13 +195,8 @@ func (b *Board) Card(IDCard string) (card *Card, err error) {
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-checklists-get
 func (b *Board) Checklists() (checklists []Checklist, err error) {
 	body, err := b.client.Get("/boards/" + b.ID + "/checklists")
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(body, &checklists)
-	for i := range checklists {
-		checklists[i].client = b.client
+	if err == nil {
+		checklists, err = parseListChecklists(body, b.client)
 	}
 	return
 }
@@ -178,13 +205,8 @@ func (b *Board) Checklists() (checklists []Checklist, err error) {
 // - URL Link?
 func (b *Board) MemberCards(IDMember string) (cards []Card, err error) {
 	body, err := b.client.Get("/boards/" + b.ID + "/members/" + IDMember + "/cards")
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(body, &cards)
-	for i := range cards {
-		cards[i].client = b.client
+	if err == nil {
+		cards, err = parseListCards(body, b.client)
 	}
 	return
 }
@@ -198,19 +220,15 @@ func (b *Board) Actions(arg ...*Argument) (actions []Action, err error) {
 	}
 
 	body, err := b.client.Get(ep)
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(body, &actions)
-	for i := range actions {
-		actions[i].client = b.client
+	if err == nil {
+		actions, err = parseListActions(body, b.client)
 	}
 	return
 }
 
 // AddList - Add a List to a Board
-func (b *Board) AddList(opts List) (*List, error) {
+func (b *Board) AddList(opts List) (list *List, err error) {
+	list = &List{}
 	opts.IDBoard = b.ID
 
 	payload := url.Values{}
@@ -219,52 +237,52 @@ func (b *Board) AddList(opts List) (*List, error) {
 	payload.Set("pos", strconv.FormatFloat(float64(opts.Pos), 'g', -1, 32))
 
 	body, err := b.client.Post("/lists", payload)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		err = parseList(body, list, b.client)
 	}
-
-	var list List
-	if err = json.Unmarshal(body, &list); err != nil {
-		return nil, err
-	}
-
-	list.client = b.client
-	return &list, nil
+	return
 }
 
 // Labels - Get Labels on a Board
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-labels-get
-func (b *Board) Labels() ([]Label, error) {
+func (b *Board) Labels() (labels []Label, err error) {
 	body, err := b.client.Get("/boards/" + b.ID + "/labels")
-	if err != nil {
-		return nil, err
+	if err == nil {
+		labels, err = parseListLabels(body, b.client)
 	}
-
-	var labels []Label
-	if err = json.Unmarshal(body, &labels); err != nil {
-		return nil, err
-	}
-	return labels, nil
+	return
 }
 
 // AddLabel - Create a Label on a board
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-labels-post
 // NOTE: Color can be an empty string
-func (b *Board) AddLabel(name, color string) (*Label, error) {
+func (b *Board) AddLabel(name, color string) (label *Label, err error) {
+	label = &Label{}
 	payload := url.Values{}
 	payload.Set("name", name)
 	payload.Set("color", color)
 
 	body, err := b.client.Post("/boards/"+b.ID+"/labels", payload)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		err = parseLabel(body, label, b.client)
 	}
+	return
+}
 
-	var label Label
-	if err = json.Unmarshal(body, &label); err != nil {
-		return nil, err
+func parseBoard(body []byte, board *Board, client *Client) (err error) {
+	err = json.Unmarshal(body, &board)
+	if err == nil {
+		board.client = client
 	}
+	return
+}
 
-	label.client = b.client
-	return &label, nil
+func parseListBoards(body []byte, client *Client) (boards []Board, err error) {
+	err = json.Unmarshal(body, &boards)
+	if err == nil {
+		for i := range boards {
+			boards[i].client = client
+		}
+	}
+	return
 }

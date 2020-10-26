@@ -62,12 +62,26 @@ type Notification struct {
 // Notification - Get Notification by notificationId (string)
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-notifications/#api-notifications-id-get
 func (c *Client) Notification(notificationID string) (notification *Notification, err error) {
+	notification = &Notification{}
 	body, err := c.Get("/notifications/" + notificationID)
-	if err != nil {
-		return
+	if err == nil {
+		err = parseNotification(body, notification, c)
 	}
+	return
+}
 
+func parseNotification(body []byte, notification *Notification, client *Client) (err error) {
 	err = json.Unmarshal(body, &notification)
-	notification.client = c
+	if err == nil {
+		notification.client = client
+	}
+	return
+}
+
+func parseListNotifications(body []byte, client *Client) (notifications []Notification, err error) {
+	err = json.Unmarshal(body, &notifications)
+	for i := range notifications {
+		notifications[i].client = client
+	}
 	return
 }

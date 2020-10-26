@@ -18,7 +18,6 @@ package trello
 
 import (
 	"encoding/json"
-	"net/url"
 	"strings"
 )
 
@@ -64,13 +63,11 @@ type Member struct {
 // Member returns a member (NOTE: "me" defaults to yourself)
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-members/#api-members-id-get
 func (c *Client) Member(nick string) (member *Member, err error) {
+	member = &Member{}
 	body, err := c.Get("/members/" + nick)
-	if err != nil {
-		return
+	if err == nil {
+		err = parseMember(body, member, c)
 	}
-
-	err = json.Unmarshal(body, &member)
-	member.client = c
 	return
 }
 
@@ -85,13 +82,8 @@ func (m *Member) Boards(field ...string) (boards []Board, err error) {
 	}
 
 	body, err := m.client.Get("/members/" + m.ID + "/boards?fields=" + fields)
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(body, &boards)
-	for i := range boards {
-		boards[i].client = m.client
+	if err == nil {
+		boards, err = parseListBoards(body, m.client)
 	}
 	return
 }
@@ -99,33 +91,14 @@ func (m *Member) Boards(field ...string) (boards []Board, err error) {
 // AddBoard creates a new Board
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-post
 func (m *Member) AddBoard(name string) (*Board, error) {
-
-	payload := url.Values{}
-	payload.Set("name", name)
-
-	body, err := m.client.Post("/boards", payload)
-	if err != nil {
-		return nil, err
-	}
-	var board Board
-	if err = json.Unmarshal(body, &board); err != nil {
-		return nil, err
-	}
-
-	board.client = m.client
-	return &board, nil
+	return m.client.CreateBoard(name)
 }
 
 // Notifications - https://developer.atlassian.com/cloud/trello/rest/api-group-members/#api-members-id-notifications-get
 func (m *Member) Notifications() (notifications []Notification, err error) {
 	body, err := m.client.Get("/members/" + m.ID + "/notifications")
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(body, &notifications)
-	for i := range notifications {
-		notifications[i].client = m.client
+	if err == nil {
+		notifications, err = parseListNotifications(body, m.client)
 	}
 	return
 }
@@ -134,4 +107,20 @@ func (m *Member) Notifications() (notifications []Notification, err error) {
 // TODO: Avatar sizes [170, 30]
 func (m *Member) AvatarURL() string {
 	return "https://trello-avatars.s3.amazonaws.com/" + m.AvatarHash + "/170.png"
+}
+
+func parseMember(body []byte, member *Member, client *Client) (err error) {
+	err = json.Unmarshal(body, &member)
+	if err == nil {
+		member.client = client
+	}
+	return
+}
+
+func parseListMembers(body []byte, client *Client) (members []Member, err error) {
+	err = json.Unmarshal(body, &members)
+	for i := range members {
+		members[i].client = client
+	}
+	return
 }

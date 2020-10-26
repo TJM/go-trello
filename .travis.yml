@@ -1,16 +1,18 @@
 sudo: false
 language: go
-
 go:
-  - "1.5"
-  - 1.4.3
-  - "1.2"
-  - tip
-
-install:
-  - go get 'github.com/franela/goblin'
-  - go get 'github.com/onsi/gomega'
-  - go get 'github.com/TJM/go-trello'
-
+- '1.15'
+# - '1.14'
+# - '1.13'
+# - '1.12'
+# - tip
+before_install:
+- go get github.com/mattn/goveralls
 script:
-  - go test ./tests/...
+# - go test -coverprofile=coverage.out -v ./...
+- "$HOME/gopath/bin/goveralls -v -service=travis-ci"
+env:
+  global:
+  - secure: yjVgUSKTpT9JnGehtnYUcNvTsE5HKb6efSlkz3nfoq3K7rD7TsRjkvHFc81s0pzN9VF4RyuZVYzqqlxY4aPCd8vDAsmVj5I6BhwGiwGjGzP+vJeWiIUNBBL54YohTbmgU84vvb2+QSWInqKFrOh905Ioyu/4dQ2RWCiFaZlUkkU7il9XYwqCsaJ2FkqvZMqk37ij353QEeycdg3iDhuOvpi5QWpIewrFL3W2BlfRMhYR98+g4kF7vHlYRZ5VoyyV7jciYTi7k6koMV+RMzlrEiGBAjXJ+y+UX+fDg2ei4FuYD9HFMne0NRu8sO1vd5jV4PGDM8Z+Ybh4xD93qAoRyVKmlvVm8NsbUz9u7qFIn7oLs0SXbgIxt9Xtqj5o0uLaDcfeZyb8AuEIPHP3N+2Jb0Uh+QO5/XVO4P+MhvDydEN02xsTiestxIoMo1gHEvc4aBGmKkjb4cMEXfAlF6CRuz3Qo9mR8vujslZlyMyh/815OiN4QuQbSTa66g/q3EtQMCOJboaEUL/I0oQkbb4ov0Kq39d4iLE8JWkNGnG1WX/rgUHijBtI7E+zIcZBB/sOJ7rBkij7yoIPzm6VBOWJSJIl60tssKNtKnJRlmEhIIBJK/ev+m60K9yunlKdDNArhpquZQAc1sj3TS4kql3JzVRcL22WzhQTrg7YI7IcShA=
+  - secure: OFNcGiO3K965WrhFs24iJOktP6ArEN7ZilesEYspV7Dsx0cwbgCMVKSBq8pT81+X6JWAjEY0BbbRvMLbDtUkFmjnPQAe32SLjfSfxpHPmVHKuc1UI1FQiNIKN+ntH5Dhl560RaGWJ6WJnR6eiBaDOPMUPlTPpH57pm9CSHjAKBpF9fAGYOw34cE4XMixmWNawEaIvuYBOcMlo/n2XumSRbZl6blqF48rEA7RhNg6T5ZNO6w4SCtdeQAYMJZPtm2/GbJhdmP7Z1JML3abCWdN6vVDvM2pHCFDynNNF78nhdYhTvj+xWTkO38wR1YYhnYziwaqqOhWKwbXSlRYdrQn01ug4O31ddfvX76VosoL6jR22w7mfAzCeMv1pTsB6Ne4fPfX94AGzCxp/TEwXmC41kELEasm4WPh6aswZHjdwM8vJyrPFaCsImKlwVAyoCFtwZ72JLG3tnjjaWTIjvDuUdVZuDDhNFr2e8tcE8iyK22Y3MAx8TSQTOCycwFOIhSv/7SQU3+DX3WoLZBjVXblg/g5b8h1zn5ZaZ3Lr8W/Fs6hYi4zKEt48SvAvyTMtCznphuIFxlHGiFAYy8GLHxHJ68WzArkT64YwZ3cR4cnN3G02UF8nDG+k4EEcG0PYUj8QZWVTFggK1ZQWp1Q4OdlRqU4UxHBMav5x0/iGnAqD/s=
+  - secure: D2ecK7XZbFD83K+nHDlBAIV52/1+PHs9bccYr72n24cJ/8z55HNEXsOCyaYGTDOWGaf3q83o+fIPpHD+OI3eqxr981x6agTWsKynYvzyjjzysM0lDofoEFI8Q0/Xit22vDqfpccmoDptO/vE/ELfbE6C5zFJg87VDM+XNzo186+8FJACPRWfd8BRV5N7qMyVotFgGHfUslskd2Auzn9QHsX/2kuO73VswEYDKKsZtcxdQ0EXSB8RL//XMzwJSvLpPiJFJwn0pHKc4r740MOsWqX5MotlJGfGTXYOQH0EsravjwjnRWYkxGtx5kdNmkEypcYNi1wEx9taEXyoeTtMyVrH2M+bC/9WWKBP/P6RN5H9cn6CJuR+QCrn8yoJUReAI5o3PQA41xKZjIJYj2yLix4E6r1WVd5NMmjKBYSQQDhG3fT0zFn7L/cvYpjHnCXL+3dIJAsfjuiIZlVeWY4iNka3HVMAvAvs/sx1dB6xjMz/607nram7n6FyUCfGrR9Y3zDMR1KQpRiuZ971wqyA0kRbIvnYQCkj0iSv46cVjKO6J9nodH94iE5EEcG1wOQClrFLkIJ4uXdhRi9/nKKdkIfTYf0frcWq79Zp7//Vadx3URjKv6QLXGLCJ0SXg1cy7utkdHHIKPnvn31ojiBf8/2uVmugIEW/y8Dgwkg9z2s=

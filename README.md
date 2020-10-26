@@ -1,19 +1,20 @@
 # Golang Trello API client
 
-go-trello is a [Go](http://golang.org/) client package for accessing the [Trello](http://www.trello.com/) [API](http://trello.com/api).
+go-trello is a [Go](http://golang.org/) client package for accessing the [Trello](http://www.trello.com/) [API](https://developer.atlassian.com/cloud/trello/guides/rest-api/api-introduction/).
 
-<a href="http://golang.org"><img alt="Go package" src="https://golang.org/doc/gopher/pencil/gopherhat.jpg" width="20%" /></a>
-<a href="http://trello.com"><img src="https://d2k1ftgv7pobq7.cloudfront.net/meta/p/res/images/c13d1cd96a2cff30f0460a5e1860c5ea/header-logo-blue.svg" style="height: 80px; margin-bottom: 2em;"></a>
+[<img alt="Go package" src="https://golang.org/doc/gopher/pencil/gopherhat.jpg" width="20%" />](https://golang.org/)
+[<img src="https://d2k1ftgv7pobq7.cloudfront.net/meta/p/res/images/c13d1cd96a2cff30f0460a5e1860c5ea/header-logo-blue.svg" style="height: 80px; margin-bottom: 2em;">](https://trello.com/)
 
 [![GoDoc](https://godoc.org/github.com/TJM/go-trello?status.png)](https://godoc.org/github.com/TJM/go-trello)
 [![Travis](https://travis-ci.org/TJM/go-trello.svg?branch=master)](https://travis-ci.org/TJM/go-trello)
+[![Coverage Status](https://coveralls.io/repos/github/TJM/go-trello/badge.svg?branch=gotest)](https://coveralls.io/github/TJM/go-trello?branch=gotest)
 
 ## Example
 
 Prerequisites:
 
 * Retrieve your `appKey`: <https://trello.com/app-key> (NOTE: This identifies "you" as the developer of the application)
-* Retrieve your (temporary) `token`: <https://trello.com/1/connect?key=MYKEYFROMABOVE&name=MYAPPNAME&response_type=token&scope=read,write&expiration=1day>
+* Retrieve your (temporary) `token`: (put the space there to prevent the link) https ://trello\.com/1/connect?key=${MYKEYFROMABOVE}>&name=${MYAPPNAME}&response_type=token&scope=read,write&expiration=1day
 
 ```go
 package main

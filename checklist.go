@@ -23,26 +23,6 @@ import (
 	"strconv"
 )
 
-// ChecklistItem - Trello Checklist Item (member of Checklist)
-type ChecklistItem struct {
-	client   *Client
-	listID   string // back pointer to the parent ID
-	State    string `json:"state"`
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	NameData struct {
-		Emoji struct{} `json:"emoji"`
-	} `json:"nameData"`
-	Pos int `json:"pos"`
-}
-
-// Delete - Delete a ChecklistItem from Checklist
-// - https://developer.atlassian.com/cloud/trello/rest/api-group-checklists/#api-checklists-id-checkitems-idcheckitem-delete
-func (i *ChecklistItem) Delete() error {
-	_, err := i.client.Delete("/checklists/" + i.listID + "/checkItems/" + i.ID)
-	return err
-}
-
 // Checklist is a representation of a checklist on a trello card
 // https://developers.trello.com/advanced-reference/checklist
 type Checklist struct {
@@ -67,38 +47,51 @@ func (c *Checklist) Delete() error {
 //   name must have a length 1 <= length <= 16384
 //   pos can take the values 'top', 'bottom', or a positive integer
 // https://developers.trello.com/advanced-reference/checklist#post-1-checklists-idchecklist-checkitems
-func (c *Checklist) AddItem(name string, pos *string, checked *bool) (*ChecklistItem, error) {
+func (c *Checklist) AddItem(name string, pos string, checked bool) (checklistItem *ChecklistItem, err error) {
+	checklistItem = &ChecklistItem{}
 	payload := url.Values{}
 	if len(name) < 1 || len(name) > 16384 {
 		return nil, fmt.Errorf("Checklist item name %q has invalid length. 1 <= length <= 16384", name)
 	}
 	payload.Set("name", name)
-	if pos != nil {
-		if *pos != "top" && *pos != "bottom" {
-			i, err := strconv.Atoi(*pos)
+	if pos != "" {
+		if pos != "top" && pos != "bottom" {
+			i, err := strconv.Atoi(pos)
 			if err != nil {
 				return nil, err
 			}
 			if i < 1 {
-				return nil, fmt.Errorf("Checklist item position %q is invalid. Only 'top', 'bottom', or a positive integer", *pos)
+				return nil, fmt.Errorf("Checklist item position %q is invalid. Only 'top', 'bottom', or a positive integer", pos)
 			}
 		}
-		payload.Set("pos", *pos)
+		payload.Set("pos", pos)
 	}
-	if checked != nil {
-		payload.Set("checked", strconv.FormatBool(*checked))
-	}
+	payload.Set("checked", strconv.FormatBool(checked))
 	body, err := c.client.Post("/checklist/"+c.ID+"/checkItems", payload)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		err = parseChecklistItem(body, checklistItem, c.client, c.ID)
 	}
+	return
+}
 
-	item := &ChecklistItem{}
-	if err = json.Unmarshal(body, item); err != nil {
-		return nil, err
+func parseChecklist(body []byte, checklist *Checklist, client *Client) (err error) {
+	err = json.Unmarshal(body, &checklist)
+	if err == nil {
+		checklist.client = client
 	}
-	item.client = c.client
-	item.listID = c.ID
+	return
+}
 
-	return item, err
+func parseListChecklists(body []byte, client *Client) (checklists []Checklist, err error) {
+	err = json.Unmarshal(body, &checklists)
+	for i := range checklists {
+		list := checklists[i]
+		list.client = client
+		for j := range list.CheckItems {
+			item := list.CheckItems[j]
+			item.client = client
+			item.listID = list.ID
+		}
+	}
+	return
 }

@@ -1,4 +1,6 @@
 tests/env
+/vendor
+/coverage.out
 
 *.swo
 *.swp

@@ -16,6 +16,8 @@ limitations under the License.
 
 package trello
 
+import "encoding/json"
+
 // Attachment - Type
 type Attachment struct {
 	client    *Client
@@ -36,4 +38,20 @@ type Attachment struct {
 		Scaled bool   `json:"scaled"`
 	} `json:"previews"`
 	URL string `json:"url"`
+}
+
+func parseAttachment(body []byte, attachment *Attachment, client *Client) (err error) {
+	err = json.Unmarshal(body, &attachment)
+	if err == nil {
+		attachment.client = client
+	}
+	return
+}
+
+func parseListAttachments(body []byte, client *Client) (attachments []Attachment, err error) {
+	err = json.Unmarshal(body, &attachments)
+	for i := range attachments {
+		attachments[i].client = client
+	}
+	return
 }
