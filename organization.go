@@ -24,16 +24,18 @@ import (
 // Organization - Trello Organization Type
 type Organization struct {
 	client      *Client
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	DisplayName string   `json:"displayName"`
-	Desc        string   `json:"desc"`
-	DescData    string   `json:"descData"`
-	URL         string   `json:"url"`
-	Website     string   `json:"website"`
-	LogoHash    string   `json:"logoHash"`
-	Products    []string `json:"products"`
-	PowerUps    []string `json:"powerUps"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"displayName"`
+	Desc        string `json:"desc"`
+	DescData    struct {
+		Emoji struct{} `json:"emoji"`
+	} `json:"descData"`
+	URL      string   `json:"url"`
+	Website  string   `json:"website"`
+	LogoHash string   `json:"logoHash"`
+	Products []string `json:"products"`
+	PowerUps []string `json:"powerUps"`
 }
 
 // Organization - Get Organization by orgId (string)
