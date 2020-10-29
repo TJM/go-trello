@@ -36,14 +36,9 @@ func TestBoard(t *testing.T) {
 
 		g.Before(func() {
 			testBoardName = fmt.Sprintf("GoTestTrello-Board-%v", time.Now().Unix())
-
-		})
-
-		g.It("should create a board", func() {
 			board, err = client.CreateBoard(testBoardName)
 			Expect(err).To(BeNil())
 			Expect(board).NotTo(BeNil())
-			Expect(board.Name).To(Equal(testBoardName))
 		})
 
 		g.It("should get a board by ID", func() {
@@ -129,6 +124,7 @@ func TestBoard(t *testing.T) {
 		g.It("should duplicate (copy) the board", func() {
 			new, err := board.Duplicate("DUP-"+testBoardName, true)
 			Expect(err).To(BeNil())
+			Expect(new).NotTo(BeNil())
 			Expect(new.ID).NotTo(Equal(board.ID))
 			// and cleanup
 			err = new.Delete()
