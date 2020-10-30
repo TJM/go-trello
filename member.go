@@ -117,7 +117,7 @@ func parseMember(body []byte, member *Member, client *Client) (err error) {
 	return
 }
 
-func parseListMembers(body []byte, client *Client) (members []Member, err error) {
+func parseListMembers(body []byte, client *Client) (members []*Member, err error) {
 	err = json.Unmarshal(body, &members)
 	for i := range members {
 		members[i].client = client

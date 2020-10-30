@@ -31,6 +31,7 @@ func TestBoard(t *testing.T) {
 
 	g.Describe("Board tests", func() {
 		var board *Board
+		var member *Member
 		var label *Label
 		var testBoardName string
 
@@ -39,13 +40,16 @@ func TestBoard(t *testing.T) {
 			board, err = client.CreateBoard(testBoardName)
 			Expect(err).To(BeNil())
 			Expect(board).NotTo(BeNil())
+			member, err = client.Member("trello")
+			Expect(err).To(BeNil())
+			Expect(member).NotTo(BeNil())
 		})
 
 		g.It("should get a board by ID", func() {
-			board, err = client.Board(board.ID)
+			b, err := client.Board(board.ID)
 			Expect(err).To(BeNil())
-			Expect(board).NotTo(BeNil())
-			Expect(board.Name).To(Equal(testBoardName))
+			Expect(b).NotTo(BeNil())
+			Expect(b.Name).To(Equal(testBoardName))
 		})
 
 		g.It("should change the board background to red", func() {
@@ -60,6 +64,59 @@ func TestBoard(t *testing.T) {
 			Expect(board.Desc).To(Equal("something"))
 		})
 
+		g.It("should get the members of a board", func() {
+			members, err := board.GetMembers()
+			Expect(err).To(BeNil())
+			Expect(members).NotTo(BeNil())
+		})
+
+		// This needs to come before "AddMember" for code coverage reasons
+		g.It("should get memberships on a board", func() {
+			ms, err := board.GetMemberships()
+			Expect(err).To(BeNil())
+			Expect(len(ms)).To(BeNumerically(">", 0))
+		})
+
+		g.It("should add a member (trello) to a board", func() {
+			err := board.AddMember(member, "")
+			Expect(err).To(BeNil())
+			// TODO: Check to be sure trello *is* a member ... for now this should work
+		})
+
+		g.It("should check to see if member is an admin", func() {
+			isAdmin := board.IsAdmin(member)
+			Expect(isAdmin).To(BeFalse())
+		})
+
+		g.It("should check to see if an invalid member is an admin", func() {
+			invalidMember, err := client.Member("test")
+			Expect(err).To(BeNil())
+			Expect(invalidMember).NotTo(BeNil())
+			isAdmin := board.IsAdmin(invalidMember)
+			Expect(isAdmin).To(BeFalse())
+		})
+
+		g.It("should check to see if itself (me) is an admin", func() {
+			me, err := client.Member("me")
+			Expect(err).To(BeNil())
+			Expect(me).NotTo(BeNil())
+			isAdmin := board.IsAdmin(me)
+			Expect(isAdmin).To(BeTrue())
+		})
+
+		g.It("should remove a member from a board", func() {
+			g.Timeout(10 * time.Second) // The delete seems to take longer than 5 seconds
+			err := board.RemoveMember(member)
+			Expect(err).To(BeNil())
+			// TODO: Check to be sure trello is *not* a member ... for now this should work
+		})
+
+		g.It("should get the members of a board (after adding/removing)", func() {
+			members, err := board.GetMembers()
+			Expect(err).To(BeNil())
+			Expect(members).NotTo(BeNil())
+		})
+
 		g.It("should get the lists in a board", func() {
 			lists, err := board.Lists()
 			Expect(err).To(BeNil())
@@ -67,11 +124,6 @@ func TestBoard(t *testing.T) {
 			Expect(lists[0].Name).To(Equal("To Do"))
 			Expect(lists[1].Name).To(Equal("Doing"))
 			Expect(lists[2].Name).To(Equal("Done"))
-		})
-
-		g.It("should get the members of a board", func() {
-			_, err := board.Members()
-			Expect(err).To(BeNil())
 		})
 
 		g.It("should get all the actions in a board", func() {
