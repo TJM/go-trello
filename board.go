@@ -83,7 +83,7 @@ func (c *Client) Board(boardID string) (board *Board, err error) {
 	body, err := c.Get("/boards/" + boardID)
 	if err == nil {
 		board = &Board{}
-		err = parseBoard(body, board, c)
+		board.parseBoard(body, c)
 	}
 	return
 }
@@ -97,7 +97,7 @@ func (c *Client) CreateBoard(name string) (board *Board, err error) {
 	body, err := c.Post("/boards", payload)
 	if err == nil {
 		board = &Board{}
-		err = parseBoard(body, board, c)
+		err = board.parseBoard(body, c)
 	}
 	return
 }
@@ -117,7 +117,7 @@ func (b *Board) Duplicate(name string, keepCards bool) (board *Board, err error)
 	body, err := b.client.Post("/boards", payload)
 	if err == nil {
 		board = &Board{}
-		err = parseBoard(body, board, b.client)
+		err = board.parseBoard(body, b.client)
 	}
 	return
 }
@@ -141,7 +141,7 @@ func (b *Board) Update(path, value string) (err error) {
 
 	body, err := b.client.Put("/boards/"+b.ID+"/"+path, payload)
 	if err == nil {
-		err = parseBoard(body, b, b.client)
+		err = b.parseBoard(body, b.client)
 	}
 	return
 }
@@ -190,7 +190,7 @@ func (b *Board) AddMember(member *Member, memberType string) (err error) {
 	payload.Set("type", memberType)
 	body, err := b.client.Put("/boards/"+b.ID+"/members/"+member.ID, payload)
 	if err == nil {
-		err = parseBoard(body, b, b.client)
+		err = b.parseBoard(body, b.client)
 	}
 	return
 }
@@ -200,7 +200,7 @@ func (b *Board) AddMember(member *Member, memberType string) (err error) {
 func (b *Board) RemoveMember(member *Member) (err error) {
 	body, err := b.client.Delete("/boards/" + b.ID + "/members/" + member.ID)
 	if err == nil {
-		err = parseBoard(body, b, b.client)
+		err = b.parseBoard(body, b.client)
 	}
 	return
 }
@@ -361,33 +361,32 @@ func (b *Board) AddLabel(name, color string) (label *Label, err error) {
 	return
 }
 
-func parseBoard(body []byte, board *Board, client *Client) (err error) {
-	err = json.Unmarshal(body, &board)
+func (b *Board) parseBoard(body []byte, client *Client) (err error) {
+	err = json.Unmarshal(body, &b)
 	if err == nil {
-		board.client = client
-		for i := range board.Members {
-			board.Members[i].client = client
+		b.client = client
+		for i := range b.Members {
+			b.Members[i].client = client
 		}
-		for i := range board.Memberships {
-			board.Memberships[i].client = client
-			board.Memberships[i].Board = board
+		for i := range b.Memberships {
+			b.Memberships[i].client = client
+			b.Memberships[i].Board = b
 		}
 	}
 	return
 }
 
-func parseListBoards(body []byte, client *Client) (boards []Board, err error) {
+func parseListBoards(body []byte, client *Client) (boards []*Board, err error) {
 	err = json.Unmarshal(body, &boards)
 	if err == nil {
 		for i := range boards {
-			board := boards[i]
-			board.client = client
+			boards[i].client = client
 			// List of boards will not have "Members"
 			// for i := range board.Members {
 			// 	board.Members[i].client = client
 			// }
-			for i := range board.Memberships {
-				board.Memberships[i].client = client
+			for j := range boards[i].Memberships {
+				boards[i].Memberships[j].client = client
 			}
 		}
 	}

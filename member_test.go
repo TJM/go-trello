@@ -48,8 +48,11 @@ func TestMember(t *testing.T) {
 		})
 
 		g.It("should retrieve boards for a member", func() {
-			_, err = member.Boards()
+			boards, err := member.Boards()
 			Expect(err).To(BeNil())
+			for i := range boards {
+				Expect(boards[i].client).NotTo(BeNil())
+			}
 		})
 
 		g.It("should add a board to a member", func() {
