@@ -73,7 +73,7 @@ func (c *Client) Member(nick string) (member *Member, err error) {
 
 // Boards returns members boards
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-members/#api-members-id-boards-get
-func (m *Member) Boards(field ...string) (boards []Board, err error) {
+func (m *Member) Boards(field ...string) (boards []*Board, err error) {
 	fields := ""
 	if len(field) == 0 {
 		fields = "all"
