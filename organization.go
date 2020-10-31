@@ -51,7 +51,7 @@ func (c *Client) Organization(orgID string) (organization *Organization, err err
 
 // Members - Get the Members of an Organization
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-organizations/#api-organizations-id-members-get
-func (o *Organization) Members() (members []Member, err error) {
+func (o *Organization) Members() (members []*Member, err error) {
 	body, err := o.client.Get("/organization/" + o.ID + "/members")
 	if err == nil {
 		members, err = parseListMembers(body, o.client)
@@ -72,13 +72,13 @@ func (o *Organization) Boards() (boards []Board, err error) {
 // AddBoard  - Create a new Board in the organization
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-post
 func (o *Organization) AddBoard(name string) (board *Board, err error) {
-	board = &Board{}
 	payload := url.Values{}
 	payload.Set("name", name)
 	payload.Set("idOrganization", o.ID)
 
 	body, err := o.client.Post("/boards", payload)
 	if err == nil {
+		board = &Board{}
 		err = parseBoard(body, board, o.client)
 	}
 	return

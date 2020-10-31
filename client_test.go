@@ -17,9 +17,11 @@ limitations under the License.
 package trello
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	goblin "github.com/franela/goblin"
 	. "github.com/onsi/gomega"
@@ -30,6 +32,12 @@ func TestClient(t *testing.T) {
 	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
 
 	g.Describe("client tests", func() {
+		var board *Board
+		var testBoardName string
+
+		g.Before(func() {
+			testBoardName = fmt.Sprintf("GoTestTrello-Board-%v", time.Now().Unix())
+		})
 
 		g.It("should create a default client", func() {
 			_, err = NewClient()
@@ -53,7 +61,18 @@ func TestClient(t *testing.T) {
 			Expect(ver).To(Equal("1"))
 		})
 
-		// NOTE: Other methods will be tested as part of other tests
+		g.It("should create a board", func() {
+			board, err = client.CreateBoard(testBoardName)
+			Expect(err).To(BeNil())
+			Expect(board).NotTo(BeNil())
+			Expect(board.Name).To(Equal(testBoardName))
+		})
+
+		g.After(func() {
+			Expect(board).NotTo(BeNil())
+			err = board.Delete()
+			Expect(err).To(BeNil())
+		})
 	})
 
 }

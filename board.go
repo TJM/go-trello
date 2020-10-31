@@ -18,6 +18,7 @@ package trello
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strconv"
 )
@@ -31,12 +32,15 @@ type Board struct {
 	DescData struct {
 		Emoji struct{} `json:"emoji"`
 	} `json:"descData"`
-	Closed         bool   `json:"closed"`
-	IDOrganization string `json:"idOrganization"`
-	Pinned         bool   `json:"pinned"`
-	URL            string `json:"url"`
-	ShortURL       string `json:"shortUrl"`
-	Prefs          struct {
+	Closed          bool          `json:"closed"`
+	IDMemberCreator string        `json:"idMemberCreator"`
+	IDOrganization  string        `json:"idOrganization"`
+	Members         []*Member     `json:"members"`
+	Memberships     []*Membership `json:"memberships"`
+	Pinned          bool          `json:"pinned"`
+	URL             string        `json:"url"`
+	ShortURL        string        `json:"shortUrl"`
+	Prefs           struct {
 		PermissionLevel       string            `json:"permissionLevel"`
 		Voting                string            `json:"voting"`
 		Comments              string            `json:"comments"`
@@ -76,9 +80,9 @@ type BoardBackground struct {
 // Board - Get board by boardID
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-get
 func (c *Client) Board(boardID string) (board *Board, err error) {
-	board = &Board{}
 	body, err := c.Get("/boards/" + boardID)
 	if err == nil {
+		board = &Board{}
 		err = parseBoard(body, board, c)
 	}
 	return
@@ -87,12 +91,12 @@ func (c *Client) Board(boardID string) (board *Board, err error) {
 // CreateBoard - Create Board
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-post
 func (c *Client) CreateBoard(name string) (board *Board, err error) {
-	board = &Board{}
 	payload := url.Values{}
 	payload.Set("name", name)
 
 	body, err := c.Post("/boards", payload)
 	if err == nil {
+		board = &Board{}
 		err = parseBoard(body, board, c)
 	}
 	return
@@ -101,7 +105,6 @@ func (c *Client) CreateBoard(name string) (board *Board, err error) {
 // Duplicate - Duplicate (Copy) Board
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-post
 func (b *Board) Duplicate(name string, keepCards bool) (board *Board, err error) {
-	board = &Board{}
 	keepFromSource := "none"
 	if keepCards {
 		keepFromSource = "cards"
@@ -113,6 +116,7 @@ func (b *Board) Duplicate(name string, keepCards bool) (board *Board, err error)
 
 	body, err := b.client.Post("/boards", payload)
 	if err == nil {
+		board = &Board{}
 		err = parseBoard(body, board, b.client)
 	}
 	return
@@ -160,14 +164,102 @@ func (b *Board) Lists() (lists []List, err error) {
 	return
 }
 
-// Members - Get the members of a board
+// GetMembers - Get the members of a board
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-members-get
-func (b *Board) Members() (members []Member, err error) {
-	body, err := b.client.Get("/boards/" + b.ID + "/members")
-	if err == nil {
-		members, err = parseListMembers(body, b.client)
+func (b *Board) GetMembers() (members []*Member, err error) {
+	if len(b.Members) == 0 {
+		body, err := b.client.Get("/boards/" + b.ID + "/members")
+		if err == nil {
+			members, err = parseListMembers(body, b.client)
+
+		}
+	} else {
+		members = b.Members
 	}
 	return
+}
+
+// AddMember - Add a Member to a board
+// memberType can be admin, normal or observer (if left blank will default to normal)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-members-idmember-put
+func (b *Board) AddMember(member *Member, memberType string) (err error) {
+	if memberType == "" {
+		memberType = "normal" // default to "normal"
+	}
+	payload := url.Values{}
+	payload.Set("type", memberType)
+	body, err := b.client.Put("/boards/"+b.ID+"/members/"+member.ID, payload)
+	if err == nil {
+		err = parseBoard(body, b, b.client)
+	}
+	return
+}
+
+// RemoveMember - Remove a Member from a board
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-members-idmember-put
+func (b *Board) RemoveMember(member *Member) (err error) {
+	body, err := b.client.Delete("/boards/" + b.ID + "/members/" + member.ID)
+	if err == nil {
+		err = parseBoard(body, b, b.client)
+	}
+	return
+}
+
+// GetMembership - Get a Membership of a board by ID
+// Get information about the memberships users have to the board.
+// filter: Valid Values: admins, all, none, normal (default: all)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-memberships-get
+func (b *Board) GetMembership(id string) (membership *Membership, err error) {
+	body, err := b.client.Get("/boards/" + b.ID + "/memberships/" + id)
+	if err == nil {
+		membership = &Membership{}
+		err = parseMembership(body, membership, b)
+	}
+	return
+}
+
+// GetMemberships - Get Memberships of a board
+// Get information about the memberships users have to the board.
+// filter: Valid Values: admins, all, none, normal (default: all)
+// - https://developer.atlassian.com/cloud/trello/rest/api-group-boards/#api-boards-id-memberships-get
+func (b *Board) GetMemberships() (memberships []*Membership, err error) {
+	if len(b.Memberships) == 0 {
+		body, err := b.client.Get("/boards/" + b.ID + "/memberships")
+		if err == nil {
+			memberships, err = parseListMemberships(body, b)
+			if err == nil {
+				b.Memberships = memberships
+			}
+		}
+	} else {
+		memberships = b.Memberships
+	}
+	return
+}
+
+// GetMembershipForMember - Return a Membership that matches a specific Member
+func (b *Board) GetMembershipForMember(member *Member) (membership *Membership, err error) {
+	memberships, err := b.GetMemberships()
+	if err == nil {
+		for _, ms := range memberships {
+			if ms.IDMember == member.ID {
+				membership = ms
+			}
+		}
+		if membership == nil {
+			err = fmt.Errorf("ERROR: No membership found for member: " + member.ID)
+		}
+	}
+	return
+}
+
+// IsAdmin - Check to see if a member is an admin
+func (b *Board) IsAdmin(member *Member) (isAdmin bool) {
+	ms, err := b.GetMembershipForMember(member)
+	if err == nil {
+		return ms.MemberType == "admin"
+	}
+	return false
 }
 
 // Cards - Get cards on a board
@@ -273,6 +365,13 @@ func parseBoard(body []byte, board *Board, client *Client) (err error) {
 	err = json.Unmarshal(body, &board)
 	if err == nil {
 		board.client = client
+		for i := range board.Members {
+			board.Members[i].client = client
+		}
+		for i := range board.Memberships {
+			board.Memberships[i].client = client
+			board.Memberships[i].Board = board
+		}
 	}
 	return
 }
@@ -281,7 +380,15 @@ func parseListBoards(body []byte, client *Client) (boards []Board, err error) {
 	err = json.Unmarshal(body, &boards)
 	if err == nil {
 		for i := range boards {
-			boards[i].client = client
+			board := boards[i]
+			board.client = client
+			// List of boards will not have "Members"
+			// for i := range board.Members {
+			// 	board.Members[i].client = client
+			// }
+			for i := range board.Memberships {
+				board.Memberships[i].client = client
+			}
 		}
 	}
 	return

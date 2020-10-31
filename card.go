@@ -90,7 +90,7 @@ func (c *Card) Checklists() (checklists []Checklist, err error) {
 
 // Members - Get the Members of a card
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-members-get
-func (c *Card) Members() (members []Member, err error) {
+func (c *Card) Members() (members []*Member, err error) {
 	body, err := c.client.Get("/cards/" + c.ID + "/members")
 	if err == nil {
 		members, err = parseListMembers(body, c.client)
@@ -103,7 +103,7 @@ func (c *Card) Members() (members []Member, err error) {
 // The AddMember function requires a member (pointer) to add
 // It returns the resulting member-list
 // https://developers.trello.com/v1.0/reference#cardsididmembers
-func (c *Card) AddMember(member *Member) (members []Member, err error) {
+func (c *Card) AddMember(member *Member) (members []*Member, err error) {
 	payload := url.Values{}
 	payload.Set("value", member.ID)
 	body, err := c.client.Post("/cards/"+c.ID+"/idMembers", payload)
@@ -117,7 +117,7 @@ func (c *Card) AddMember(member *Member) (members []Member, err error) {
 // - https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-idmembers-idmember-delete
 // The RemoveMember function requires a member (pointer) to delete
 // It returns the resulting member-list
-func (c *Card) RemoveMember(member *Member) (members []Member, err error) {
+func (c *Card) RemoveMember(member *Member) (members []*Member, err error) {
 	body, err := c.client.Delete("/cards/" + c.ID + "/idMembers/" + member.ID)
 	if err == nil {
 		members, err = parseListMembers(body, c.client)
