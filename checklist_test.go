@@ -18,6 +18,7 @@ package trello
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"testing"
 	"time"
@@ -40,17 +41,28 @@ func TestChecklist(t *testing.T) {
 		g.Before(func() {
 			testBoardName = fmt.Sprintf("GoTestTrello-Checklist-%v", time.Now().Unix())
 			board, err = client.CreateBoard(testBoardName)
-			Expect(err).To(BeNil())
+			if err != nil {
+				log.Fatal("ERROR Creating Board: " + err.Error())
+			}
 			lists, err := board.Lists()
-			Expect(err).To(BeNil())
+			if err != nil {
+				log.Fatal("ERROR Retrieving board lists: " + err.Error())
+			}
+			if len(lists) < 1 {
+				log.Fatal("ERROR: There should be at least one list on the test board. (by default)")
+			}
 			list := &lists[0]
 			card, err := list.AddCard(Card{
 				Name: "Testing 123",
 				Desc: "Does this thing work?",
 			})
-			Expect(err).To(BeNil())
+			if err != nil || card == nil {
+				log.Fatal("ERROR: Creating Card")
+			}
 			checklist, err = card.AddChecklist("TrelloTesting")
-			Expect(err).To(BeNil())
+			if err != nil || checklist == nil {
+				log.Fatal("ERROR: Creating Card")
+			}
 		})
 
 		g.It("should error if checklist item name is empty", func() {
@@ -111,7 +123,9 @@ func TestChecklist(t *testing.T) {
 		// Keep this test LAST for obvious reasons
 		g.After(func() {
 			err = board.Delete()
-			Expect(err).To(BeNil())
+			if err != nil {
+				log.Fatal("ERROR Deleting Board: " + err.Error())
+			}
 		})
 
 	})

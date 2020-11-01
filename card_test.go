@@ -18,6 +18,7 @@ package trello
 
 import (
 	"fmt"
+	"log"
 	"testing"
 	"time"
 
@@ -39,18 +40,28 @@ func TestCard(t *testing.T) {
 		g.Before(func() {
 			testBoardName = fmt.Sprintf("GoTestTrello-Card-%v", time.Now().Unix())
 			member, err = client.Member("me")
-			Expect(err).To(BeNil())
+			if err != nil || member == nil {
+				log.Fatal("ERROR Retrieving member (me): " + err.Error())
+			}
 			board, err = client.CreateBoard(testBoardName)
-			Expect(err).To(BeNil())
+			if err != nil || board == nil {
+				log.Fatal("ERROR Creating Board: " + err.Error())
+			}
 			lists, err := board.Lists()
-			Expect(err).To(BeNil())
+			if err != nil {
+				log.Fatal("ERROR Retrieving board lists: " + err.Error())
+			}
+			if len(lists) < 1 {
+				log.Fatal("ERROR: There should be at least one list on the test board. (by default)")
+			}
 			list := &lists[0]
 			card, err = list.AddCard(Card{
 				Name: "Testing 123",
 				Desc: "Does this thing work?",
 			})
-			Expect(err).To(BeNil())
-			Expect(card).NotTo(BeNil())
+			if err != nil || card == nil {
+				log.Fatal("ERROR: Creating Card")
+			}
 		})
 
 		g.It("should retrieve a card by ID from client", func() {
@@ -203,7 +214,9 @@ func TestCard(t *testing.T) {
 		// Keep this test LAST for obvious reasons
 		g.After(func() {
 			err = board.Delete()
-			Expect(err).To(BeNil())
+			if err != nil {
+				log.Fatal("ERROR Deleting Board: " + err.Error())
+			}
 		})
 
 	})

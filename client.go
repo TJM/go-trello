@@ -36,63 +36,58 @@ func (c *Client) Version() string {
 	return c.version
 }
 
-func (c *Client) do(req *http.Request) ([]byte, error) {
+func (c *Client) do(req *http.Request) (body []byte, err error) {
 	resp, err := c.client.Do(req)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		defer resp.Body.Close()
+		body, err = ioutil.ReadAll(resp.Body)
+		if err == nil {
+			if resp.StatusCode != 200 {
+				err = fmt.Errorf("Received unexpected status %d while trying to retrieve the server data with \"%s\"", resp.StatusCode, string(body))
+				return nil, err
+			}
+		}
 	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != 200 {
-		err = fmt.Errorf("Received unexpected status %d while trying to retrieve the server data with \"%s\"", resp.StatusCode, string(body))
-		return nil, err
-	}
-	return body, nil
+	return
 }
 
 // Get - HTTP GET
-func (c *Client) Get(resource string) ([]byte, error) {
+func (c *Client) Get(resource string) (body []byte, err error) {
 	req, err := http.NewRequest("GET", c.endpoint+resource, nil)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		body, err = c.do(req)
 	}
-	return c.do(req)
+	return
 }
 
 // Post - HTTP POST
-func (c *Client) Post(resource string, data url.Values) ([]byte, error) {
+func (c *Client) Post(resource string, data url.Values) (body []byte, err error) {
 	req, err := http.NewRequest("POST", c.endpoint+resource, strings.NewReader(data.Encode()))
-	if err != nil {
-		return nil, err
+	if err == nil {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		body, err = c.do(req)
 	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	return c.do(req)
+	return
 }
 
 // Put - HTTP PUT
-func (c *Client) Put(resource string, data url.Values) ([]byte, error) {
+func (c *Client) Put(resource string, data url.Values) (body []byte, err error) {
 	req, err := http.NewRequest("PUT", c.endpoint+resource, strings.NewReader(data.Encode()))
-	if err != nil {
-		return nil, err
+	if err == nil {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		body, err = c.do(req)
 	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	return c.do(req)
+	return
 }
 
 // Delete - HTTP DELETE
-func (c *Client) Delete(resource string) ([]byte, error) {
+func (c *Client) Delete(resource string) (body []byte, err error) {
 	req, err := http.NewRequest("DELETE", c.endpoint+resource, nil)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		body, err = c.do(req)
 	}
-
-	return c.do(req)
+	return
 }
 
 // bearerRoundTripper Type

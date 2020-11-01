@@ -62,6 +62,16 @@ func TestList(t *testing.T) {
 			Expect(c).NotTo(BeNil())
 		})
 
+		g.It("should add a card to a list with pos", func() {
+			c, err := list.AddCard(Card{
+				Name: "Testing 123",
+				Desc: "Does this thing work?",
+				Pos:  2.0,
+			})
+			Expect(err).To(BeNil())
+			Expect(c).NotTo(BeNil())
+		})
+
 		g.It("should retrieve cards in a list", func() {
 			_, err = list.Cards()
 			Expect(err).To(BeNil())
