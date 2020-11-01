@@ -18,6 +18,7 @@ package trello
 
 import (
 	"fmt"
+	"log"
 	"testing"
 	"time"
 
@@ -38,7 +39,12 @@ func TestOrganization(t *testing.T) {
 		g.Before(func() {
 			testBoardName = fmt.Sprintf("GoTestTrello-Organization-%v", time.Now().Unix())
 			member, err = client.Member("me")
-			Expect(err).To(BeNil())
+			if err != nil || member == nil {
+				log.Fatal("ERROR Retrieving member (me): " + err.Error())
+			}
+			if len(member.IDOrganizations) < 1 {
+				log.Fatalf("ERROR: Organization Tests require at least 1 organization!")
+			}
 		})
 
 		g.It("should retrieve organization by Id", func() {

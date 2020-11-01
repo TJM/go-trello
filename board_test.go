@@ -18,6 +18,7 @@ package trello
 
 import (
 	"fmt"
+	"log"
 	"testing"
 	"time"
 
@@ -38,11 +39,13 @@ func TestBoard(t *testing.T) {
 		g.Before(func() {
 			testBoardName = fmt.Sprintf("GoTestTrello-Board-%v", time.Now().Unix())
 			board, err = client.CreateBoard(testBoardName)
-			Expect(err).To(BeNil())
-			Expect(board).NotTo(BeNil())
+			if err != nil || board == nil {
+				log.Fatal("ERROR Creating Board: " + err.Error())
+			}
 			member, err = client.Member("trello")
-			Expect(err).To(BeNil())
-			Expect(member).NotTo(BeNil())
+			if err != nil || member == nil {
+				log.Fatal("ERROR Retrieving 'trello' member: " + err.Error())
+			}
 		})
 
 		g.It("should get a board by ID", func() {
@@ -80,7 +83,7 @@ func TestBoard(t *testing.T) {
 		g.It("should add a member (trello) to a board", func() {
 			err := board.AddMember(member, "")
 			Expect(err).To(BeNil())
-			// TODO: Check to be sure trello *is* a member ... for now this should work
+			// TODO: Check to be sure trello *is* a member, for now this should work
 		})
 
 		g.It("should check to see if member is an admin", func() {
@@ -108,7 +111,7 @@ func TestBoard(t *testing.T) {
 			g.Timeout(10 * time.Second) // The delete seems to take longer than 5 seconds
 			err := board.RemoveMember(member)
 			Expect(err).To(BeNil())
-			// TODO: Check to be sure trello is *not* a member ... for now this should work
+			// TODO: Check to be sure trello is *not* a member, for now this should work
 		})
 
 		g.It("should get the members of a board (after adding/removing)", func() {
@@ -186,7 +189,9 @@ func TestBoard(t *testing.T) {
 		// Keep this test LAST for obvious reasons
 		g.After(func() {
 			err = board.Delete()
-			Expect(err).To(BeNil())
+			if err != nil {
+				log.Fatal("ERROR Deleting Board: " + err.Error())
+			}
 		})
 
 	})
