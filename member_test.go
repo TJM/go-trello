@@ -55,6 +55,14 @@ func TestMember(t *testing.T) {
 			}
 		})
 
+		g.It("should retrieve boards for a member with fields", func() {
+			boards, err := member.Boards("id", "name", "desc")
+			Expect(err).To(BeNil())
+			for i := range boards {
+				Expect(boards[i].client).NotTo(BeNil())
+			}
+		})
+
 		g.It("should add a board to a member", func() {
 			b, err := member.AddBoard(testBoardName)
 			Expect(err).To(BeNil())

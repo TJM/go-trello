@@ -22,10 +22,9 @@ type Webhook struct {
 func (c *Client) Webhooks(token string) (webhooks []Webhook, err error) {
 
 	body, err := c.Get(webhookURL(token))
-	if err != nil {
-		return []Webhook{}, err
+	if err == nil {
+		err = json.Unmarshal(body, &webhooks)
 	}
-	err = json.Unmarshal(body, &webhooks)
 	return
 }
 
@@ -38,11 +37,10 @@ func (c *Client) CreateWebhook(hook Webhook) (webhook *Webhook, err error) {
 	payload.Set("callbackURL", hook.CallbackURL)
 	payload.Set("idModel", hook.IDModel)
 	body, err := c.Post("/webhooks/", payload)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		err = json.Unmarshal(body, &webhook)
+		webhook.client = c
 	}
-	err = json.Unmarshal(body, &webhook)
-	webhook.client = c
 	return
 }
 
